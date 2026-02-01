@@ -15,8 +15,6 @@ import org.lwjgl.glfw.GLFW;
  * @Date: 2026/2/1 12:32
  */
 public class Flight extends Module {
-    private final MinecraftClient mc = MinecraftClient.getInstance();
-
     private final ModeSetting mode = new ModeSetting("Mode", "Creative", "Creative", "Vanilla");
 
     private final NumberSetting vSpeed = new NumberSetting("V-Speed", 0.05, 0.01, 1.0, 0.01);
@@ -42,36 +40,36 @@ public class Flight extends Module {
 
     @Override
     protected void onEnable() {
-        if (mc.player == null) return;
+        if (client.player == null) return;
         if (mode.getValue().equals("Creative")) {
-            mc.player.getAbilities().allowFlying = true;
-            mc.player.getAbilities().flying = true;
+            client.player.getAbilities().allowFlying = true;
+            client.player.getAbilities().flying = true;
         }
     }
 
     @Override
     protected void onDisable() {
-        if (mc.player == null) return;
-        mc.player.getAbilities().flying = false;
-        if (!mc.player.isCreative()) {
-            mc.player.getAbilities().allowFlying = false;
+        if (client.player == null) return;
+        client.player.getAbilities().flying = false;
+        if (!client.player.isCreative()) {
+            client.player.getAbilities().allowFlying = false;
         }
     }
 
     @EventListener
     public void onUpdate(UpdateEvent event) {
-        if (mc.player == null) return;
+        if (client.player == null) return;
         handleVanila();
     }
 
     private void handleVanila() {
-        mc.player.getAbilities().flying = true;
-        float speed = (vSprint.getValue() && mc.options.sprintKey.isPressed()) ?
+        client.player.getAbilities().flying = true;
+        float speed = (vSprint.getValue() && client.options.sprintKey.isPressed()) ?
                 vSprintSpeed.getValue().floatValue() : vSpeed.getValue().floatValue();
-        mc.player.getAbilities().setFlySpeed(speed);
+        client.player.getAbilities().setFlySpeed(speed);
 
-        if (bypass.getValue() && mc.player.age % 40 == 0) {
-            mc.player.setVelocity(mc.player.getVelocity().x, -0.04, mc.player.getVelocity().z);
+        if (bypass.getValue() && client.player.age % 40 == 0) {
+            client.player.setVelocity(client.player.getVelocity().x, -0.04, client.player.getVelocity().z);
         }
     }
 }
