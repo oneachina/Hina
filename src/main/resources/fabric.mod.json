@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "hinaclient",
+  "version": "${version}",
+  "name": "Hina Client",
+  "description": "A custom client for Minecraft 1.21.4",
+  "authors": [
+    "Eatgrapes"
+  ],
+  "contact": {
+    "homepage": "https://tanikaze.icu",
+    "sources": "https://github.com/Eatgrapes"
+  },
+  "license": "MIT",
+  "icon": "assets/hina/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.eatgrapes.hina.HinaClient"
+    ]
+  },
+  "mixins": [
+    "hina.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.10",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

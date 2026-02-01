@@ -1,0 +1,65 @@
+plugins {
+	id 'fabric-loom' version '1.14-SNAPSHOT'
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	mavenCentral()
+    maven { url 'https://jitpack.io' }
+    maven { url "https://api.modrinth.com/maven" }
+    maven { url "https://maven.lenni0451.net/everything" }
+    maven { url "https://repo.viaversion.com/" }
+    maven { url "https://repo.opencollab.dev/maven-snapshots/" }
+    maven { url "https://maven.terraformersmc.com/" }
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    include "io.github.llamalad7:mixinextras-fabric:0.4.1"
+    annotationProcessor "io.github.llamalad7:mixinextras-fabric:0.4.1"
+    modRuntimeOnly "com.viaversion:viafabricplus:4.0.2"
+
+    def skijaVersion = "0.116.4"
+    implementation "io.github.humbleui:skija-windows-x64:${skijaVersion}"
+    include "io.github.humbleui:skija-windows-x64:${skijaVersion}"
+
+    implementation "io.github.humbleui:types:0.2.0"
+    include "io.github.humbleui:types:0.2.0"
+
+    // Java 21 is needed
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}
