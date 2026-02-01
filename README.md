@@ -25,5 +25,5 @@ Hina Client used Gradle to make sure that it is installed properly.
 ## Stats
 ![Alt](https://repobeats.axiom.co/api/embed/48ec79b6387ae92919ee4d4b4255938a0d2017f5.svg "Repobeats analytics image")
 
-Copyright (C) 2025 oneachina
-Special Thanks Eatgrapes (He developed the core framework for the project)
+Copyright (C) 2025 oneachina <br>
+Special Thanks Eatgrapes (He developed the core framework for the project) 
