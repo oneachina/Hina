@@ -28,7 +28,13 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     include "io.github.llamalad7:mixinextras-fabric:0.4.1"
     annotationProcessor "io.github.llamalad7:mixinextras-fabric:0.4.1"
+
     modRuntimeOnly "com.viaversion:viafabricplus:4.0.2"
+    modRuntimeOnly "maven.modrinth:sodium:mc1.21.4-0.6.6-fabric"
+    modRuntimeOnly "maven.modrinth:iris:1.8.5+1.21.4-fabric"
+    modRuntimeOnly "maven.modrinth:sodium-extra:mc1.21.4-0.6.1+fabric"
+    modRuntimeOnly "maven.modrinth:lithium:mc1.21.4-0.14.7-fabric"
+    modRuntimeOnly "maven.modrinth:in-game-account-switcher:WBbjirJP"
 
     def skijaVersion = "0.116.4"
     implementation "io.github.humbleui:skija-windows-x64:${skijaVersion}"
