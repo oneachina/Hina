@@ -40,7 +40,7 @@ dependencies {
     modRuntimeOnly "maven.modrinth:lithium:mc1.21.4-0.14.7-fabric"
     modRuntimeOnly "maven.modrinth:in-game-account-switcher:WBbjirJP"
 
-    def skijaVersion = "0.116.4"
+    def skijaVersion = "0.119.3"
     implementation "io.github.humbleui:skija-windows-x64:${skijaVersion}"
     include "io.github.humbleui:skija-windows-x64:${skijaVersion}"
 
