@@ -1,5 +1,5 @@
 /**
- * @author Eatgrapes
+ * @author Eatgrapes, oneachina
  * @link github.com/Eatgrapes
  */
 package com.eatgrapes.hina.ui.clickgui;
@@ -131,5 +131,9 @@ public class Panel {
     
     private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+    }
+
+    public List<ModuleButton> getModuleButtons() {
+        return moduleButtons;
     }
 }

@@ -8,6 +8,7 @@ import com.eatgrapes.hina.module.Category;
 import com.eatgrapes.hina.module.impl.render.ClickGuiModule;
 import com.eatgrapes.hina.skia.SkiaRenderer;
 import com.eatgrapes.hina.ui.clickgui.Panel;
+import com.eatgrapes.hina.ui.clickgui.ModuleButton;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -27,40 +28,52 @@ public class ClickGuiScreen extends Screen {
         this.module = module;
         float x = 20;
         float y = 20;
-        float width = 140; 
-        float gap = 20; 
+        float width = 140;
+        float gap = 20;
         for (Category category : Category.values()) {
             panels.add(new Panel(category, x, y, width));
-            x += width + gap + 30; 
+            x += width + gap + 30;
         }
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        float target = closing ? 0.0f : 1.0f;
+        float target = closing ? 0f : 1f;
         openAnimationProgress += (target - openAnimationProgress) * 0.15f;
+
         if (closing && openAnimationProgress < 0.05f) {
+            assert this.client != null;
             this.client.setScreen(null);
-            this.module.setEnabled(false);
             return;
         }
-        double mcScale = this.client.getWindow().getScaleFactor();
-        int transformedMouseX = (int) (mouseX * (mcScale / GUI_SCALE));
-        int transformedMouseY = (int) (mouseY * (mcScale / GUI_SCALE));
-        SkiaRenderer.draw((canvas) -> {
-            if (openAnimationProgress < 0.01f) return;
+
+        SkiaRenderer.draw(canvas -> {
             canvas.save();
-            canvas.scale(GUI_SCALE, GUI_SCALE);
-            float logicalWidth = this.client.getWindow().getFramebufferWidth() / GUI_SCALE;
-            float logicalHeight = this.client.getWindow().getFramebufferHeight() / GUI_SCALE;
-            float centerX = logicalWidth / 2f;
-            float centerY = logicalHeight / 2f;
-            canvas.translate(centerX, centerY);
+            float centerX = this.width / 2f;
+            float centerY = this.height / 2f;
+            canvas.translate(centerX * (1 - openAnimationProgress), centerY * (1 - openAnimationProgress));
             canvas.scale(openAnimationProgress, openAnimationProgress);
-            canvas.translate(-centerX, -centerY);
-            for (Panel panel : panels) panel.render(canvas, transformedMouseX, transformedMouseY);
+            for (Panel panel : panels) panel.render(canvas, mouseX, mouseY);
             canvas.restore();
         });
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        for (Panel panel : panels) {
+            for (ModuleButton mb : panel.getModuleButtons()) {
+                if (mb.isBinding()) {
+                    mb.onKey(keyCode);
+                    return true;
+                }
+            }
+        }
+
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
+            closing = true;
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -81,15 +94,6 @@ public class ClickGuiScreen extends Screen {
         double transformedMouseY = mouseY * (mcScale / GUI_SCALE);
         for (Panel panel : panels) panel.mouseReleased(transformedMouseX, transformedMouseY, button);
         return super.mouseReleased(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
-            closing = true;
-            return true;
-        }
-        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
