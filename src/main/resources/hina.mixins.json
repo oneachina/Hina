@@ -5,11 +5,12 @@
   "mixins": [
     "HinaConnectionMixin",
     "HinaKeyboardHandlerdMixin",
+    "HinaLevelRendererMixin",
     "HinaLightmapMixin",
     "HinaMinecraftMixin",
     "HinaRenderMixin",
     "HinaWindowMixin",
-    "HinaLevelRendererMixin"
+    "ServerboundMovePlayerPacketAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

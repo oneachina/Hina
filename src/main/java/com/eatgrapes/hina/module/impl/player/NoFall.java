@@ -2,6 +2,7 @@ package com.eatgrapes.hina.module.impl.player;
 
 import com.eatgrapes.hina.event.EventListener;
 import com.eatgrapes.hina.event.impl.PacketEvent;
+import com.eatgrapes.hina.mixin.ServerboundMovePlayerPacketAccessor;
 import com.eatgrapes.hina.module.Category;
 import com.eatgrapes.hina.module.Module;
 import com.eatgrapes.hina.setting.ModeSetting;
@@ -24,7 +25,7 @@ public class NoFall extends Module {
         if (client.player == null) return;
 
         if (mode.getValue().equals("No Ground") && event.getPacket() instanceof ServerboundMovePlayerPacket packet) {
-                packet.onGround = false;
+            ((ServerboundMovePlayerPacketAccessor) packet).setOnGround(false);
         }
     }
 }
