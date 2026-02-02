@@ -36,6 +36,8 @@ public class ModuleButton {
             else if (setting instanceof ModeSetting) components.add(new ModeComponent((ModeSetting) setting, width, SETTING_HEIGHT));
             else if (setting instanceof ColorSetting) components.add(new ColorComponent((ColorSetting) setting, width, COLOR_HEIGHT));
         }
+
+        components.add(new BindComponent(module, width, SETTING_HEIGHT));
     }
 
     public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
