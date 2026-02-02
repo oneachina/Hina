@@ -5,30 +5,33 @@
 package com.eatgrapes.hina.utils.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.*;
 import org.joml.Matrix4f;
 
 public class RenderUtils {
-    public static final RenderLayer LINES_NO_DEPTH = RenderLayer.of(
+    public static final RenderType LINES_NO_DEPTH = RenderType.create(
             "lines_no_depth",
-            VertexFormats.LINES,
-            VertexFormat.DrawMode.LINES,
+            DefaultVertexFormat.POSITION_COLOR_NORMAL,
+            VertexFormat.Mode.LINES,
             1536,
             false,
             false,
-            RenderLayer.MultiPhaseParameters.builder()
-                    .program(RenderPhase.LINES_PROGRAM)
-                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
-                    .writeMaskState(RenderPhase.COLOR_MASK)
-                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
-                    .cull(RenderPhase.DISABLE_CULLING)
-                    .build(false)
+            RenderType.CompositeState.builder()
+                    .setShaderState(RenderStateShard.RENDERTYPE_LINES_SHADER)
+                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .createCompositeState(false)
     );
 
-    public static void drawBox(MatrixStack matrixStack, VertexConsumer vertexConsumer, double x1, double y1, double z1, double x2, double y2, double z2, float r, float g, float b, float a, float thickness) {
+    public static void drawBox(PoseStack poseStack, VertexConsumer vertexConsumer, double x1, double y1, double z1, double x2, double y2, double z2, float r, float g, float b, float a, float thickness) {
         RenderSystem.lineWidth(thickness);
-        Matrix4f matrix = matrixStack.peek().getPositionMatrix();
+        Matrix4f matrix = poseStack.last().pose();
         float x1f = (float) x1, y1f = (float) y1, z1f = (float) z1;
         float x2f = (float) x2, y2f = (float) y2, z2f = (float) z2;
 
@@ -42,7 +45,7 @@ public class RenderUtils {
         };
 
         for (float[] p : v) {
-            vertexConsumer.vertex(matrix, p[0], p[1], p[2]).color(r, g, b, a).normal(0, 0, 0);
+            vertexConsumer.addVertex(matrix, p[0], p[1], p[2]).setColor(r, g, b, a).setNormal(0, 0, 0);
         }
     }
 }

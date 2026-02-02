@@ -3,9 +3,9 @@
  * @link: github.com/oneachina
  */
 package com.eatgrapes.hina.event.impl;
+import net.minecraft.network.protocol.Packet;
 
 import com.eatgrapes.hina.event.Event;
-import net.minecraft.network.packet.Packet;
 
 public class PacketEvent extends Event {
     private final Packet<?> packet;

@@ -11,7 +11,7 @@ import io.github.humbleui.skija.DirectContext;
 import io.github.humbleui.skija.Surface;
 import io.github.humbleui.skija.SurfaceColorFormat;
 import io.github.humbleui.skija.SurfaceOrigin;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 
 public class SkiaContext {
@@ -40,8 +40,8 @@ public class SkiaContext {
             renderTarget.close();
             renderTarget = null;
         }
-        int fboId = MinecraftClient.getInstance().getFramebuffer().fbo;
-        renderTarget = BackendRenderTarget.makeGL(width, height, 0, 8, fboId, GL11.GL_RGBA8);
+        int frameBufferId = Minecraft.getInstance().getMainRenderTarget().frameBufferId;
+        renderTarget = BackendRenderTarget.makeGL(width, height, 0, 8, frameBufferId, GL11.GL_RGBA8);
         surface = Surface.wrapBackendRenderTarget(context, renderTarget, SurfaceOrigin.BOTTOM_LEFT,
                 SurfaceColorFormat.RGBA_8888, ColorSpace.getSRGB());
     }

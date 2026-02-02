@@ -8,6 +8,7 @@ import com.eatgrapes.hina.event.EventListener;
 import com.eatgrapes.hina.event.EventBus;
 import com.eatgrapes.hina.event.mod.KeyEvent;
 import com.eatgrapes.hina.module.impl.movement.Flight;
+import com.eatgrapes.hina.module.impl.player.NoFall;
 import com.eatgrapes.hina.module.impl.render.ClickGuiModule;
 import com.eatgrapes.hina.module.impl.render.ESPModule;
 import com.eatgrapes.hina.module.impl.render.FullbrightModule;
@@ -28,6 +29,7 @@ public class ModuleManager {
         modules.add(new Flight());
         modules.add(new ESPModule());
         modules.add(new FullbrightModule());
+        modules.add(new NoFall());
     }
 
     @EventListener

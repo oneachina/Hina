@@ -1,14 +1,14 @@
 /**
- * @author Eatgrapes
- * @link github.com/Eatgrapes
+ * @Author: Eatgrapes, oneachina
+ * @link: github.com/oneachina
  */
 package com.eatgrapes.hina.mixin;
 
 import com.eatgrapes.hina.event.EventBus;
 import com.eatgrapes.hina.event.impl.ClientTickEvent;
 import com.eatgrapes.hina.skia.SkiaContext;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.Window;
+import net.minecraft.client.Minecraft;
+import com.mojang.blaze3d.platform.Window;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -17,18 +17,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(MinecraftClient.class)
-public abstract class HinaMinecraftClientMixin {
+@Mixin(Minecraft.class)
+public abstract class HinaMinecraftMixin {
     @Shadow @Final private Window window;
-    @Shadow protected abstract String getWindowTitle();
+
+    @Shadow protected abstract String createTitle();
 
     /**
-     * @author Eatgrapes
+     * @author: Eatgrapes
      * @reason Custom Window Title
      */
     @Overwrite
-    public void updateWindowTitle() {
-        this.window.setTitle("Hina Client for " + getWindowTitle());
+    public void updateTitle() { // Mojang: updateTitle
+        this.window.setTitle("Hina Client for " + createTitle());
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))

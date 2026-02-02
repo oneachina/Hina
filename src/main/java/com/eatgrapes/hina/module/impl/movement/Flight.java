@@ -7,7 +7,7 @@ import com.eatgrapes.hina.module.Module;
 import com.eatgrapes.hina.setting.BooleanSetting;
 import com.eatgrapes.hina.setting.ModeSetting;
 import com.eatgrapes.hina.setting.NumberSetting;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -42,7 +42,7 @@ public class Flight extends Module {
     protected void onEnable() {
         if (client.player == null) return;
         if (mode.getValue().equals("Creative")) {
-            client.player.getAbilities().allowFlying = true;
+            client.player.getAbilities().mayfly = true;
             client.player.getAbilities().flying = true;
         }
     }
@@ -52,24 +52,26 @@ public class Flight extends Module {
         if (client.player == null) return;
         client.player.getAbilities().flying = false;
         if (!client.player.isCreative()) {
-            client.player.getAbilities().allowFlying = false;
+            client.player.getAbilities().mayfly = false;
         }
     }
 
     @EventListener
     public void onUpdate(UpdateEvent event) {
         if (client.player == null) return;
-        handleVanila();
+        handleVanilla();
     }
 
-    private void handleVanila() {
+    private void handleVanilla() {
+        assert client.player != null;
         client.player.getAbilities().flying = true;
-        float speed = (vSprint.getValue() && client.options.sprintKey.isPressed()) ?
+        float speed = (vSprint.getValue() && client.options.keySprint.isDown()) ?
                 vSprintSpeed.getValue().floatValue() : vSpeed.getValue().floatValue();
-        client.player.getAbilities().setFlySpeed(speed);
+        client.player.getAbilities().setFlyingSpeed(speed);
 
-        if (bypass.getValue() && client.player.age % 40 == 0) {
-            client.player.setVelocity(client.player.getVelocity().x, -0.04, client.player.getVelocity().z);
+        if (bypass.getValue() && client.player.tickCount % 40 == 0) {
+            Vec3 currentMovement = client.player.getDeltaMovement();
+            client.player.setDeltaMovement(currentMovement.x(), -0.04, currentMovement.z);
         }
     }
 }

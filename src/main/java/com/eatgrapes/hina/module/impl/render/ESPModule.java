@@ -4,7 +4,6 @@
  */
 package com.eatgrapes.hina.module.impl.render;
 
-import com.eatgrapes.hina.event.EventBus;
 import com.eatgrapes.hina.event.EventListener;
 import com.eatgrapes.hina.event.impl.Render3DEvent;
 import com.eatgrapes.hina.module.Category;
@@ -14,15 +13,14 @@ import com.eatgrapes.hina.setting.ColorSetting;
 import com.eatgrapes.hina.setting.ModeSetting;
 import com.eatgrapes.hina.setting.NumberSetting;
 import com.eatgrapes.hina.utils.render.RenderUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.mob.Monster;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.awt.Color;
 
@@ -63,17 +61,16 @@ public class ESPModule extends Module {
     @EventListener
     private void onRender3D(Render3DEvent event) {
         if (!isEnabled()) return;
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.world == null || mc.player == null || event.getTickCounter() == null) return;
+        if (client.level == null || client.player == null || event.getTickCounter() == null) return;
 
-        float delta = event.getTickCounter().getTickDelta(false);
-        Vec3d camPos = mc.gameRenderer.getCamera().getPos();
+        float delta = event.getTickCounter().getGameTimeDeltaPartialTick(false);
+        Vec3 camPos = client.gameRenderer.getMainCamera().getPosition();
         VertexConsumer vc = event.getVertexConsumers().getBuffer(RenderUtils.LINES_NO_DEPTH);
-        MatrixStack stack = event.getMatrixStack();
+        PoseStack stack = event.getPoseStack();
         float lineW = thickness.getValue().floatValue();
 
-        for (Entity entity : mc.world.getEntities()) {
-            if (entity == mc.player || entity.isRemoved()) continue;
+        for (Entity entity : client.level.getEntities()) {
+            if (entity == client.player || entity.isRemoved()) continue;
 
             int colorInt = getColorInt(entity);
 
@@ -84,29 +81,29 @@ public class ESPModule extends Module {
             float b = (colorInt & 0xFF) / 255f;
             float a = ((colorInt >> 24) & 0xFF) / 255f;
 
-            double x = entity.prevX + (entity.getX() - entity.prevX) * delta - camPos.x;
-            double y = entity.prevY + (entity.getY() - entity.prevY) * delta - camPos.y;
-            double z = entity.prevZ + (entity.getZ() - entity.prevZ) * delta - camPos.z;
+            double x = entity.xo + (entity.getX() - entity.xo) * delta - camPos.x;
+            double y = entity.yo + (entity.getY() - entity.yo) * delta - camPos.y;
+            double z = entity.zo + (entity.getZ() - entity.zo) * delta - camPos.z;
 
-            Box eb = entity.getBoundingBox();
+            AABB eb = entity.getBoundingBox();
             double w = (eb.maxX - eb.minX) / 2.0;
             double h = eb.maxY - eb.minY;
             double d = (eb.maxZ - eb.minZ) / 2.0;
 
-            stack.push();
+            stack.pushPose();
             stack.translate(x, y, z);
             RenderUtils.drawBox(stack, vc, -w, 0, -d, w, h, d, r, g, b, a, lineW);
-            stack.pop();
+            stack.popPose();
         }
     }
 
     private int getColorInt(Entity entity) {
         int colorInt = -1;
-        if (entity instanceof PlayerEntity && players.getValue()) {
+        if (entity instanceof Player && players.getValue()) {
             colorInt = unifiedColor.getValue() ? commonColor.getColor() : playerColor.getColor();
         } else if (entity instanceof Monster && mobs.getValue()) {
             colorInt = unifiedColor.getValue() ? commonColor.getColor() : mobColor.getColor();
-        } else if (entity instanceof AnimalEntity && animals.getValue()) {
+        } else if (entity instanceof Animal && animals.getValue()) {
             colorInt = unifiedColor.getValue() ? commonColor.getColor() : animalColor.getColor();
         }
         return colorInt;

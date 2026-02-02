@@ -7,7 +7,6 @@ package com.eatgrapes.hina.module.impl.render;
 import com.eatgrapes.hina.module.Category;
 import com.eatgrapes.hina.module.Module;
 import com.eatgrapes.hina.ui.ClickGuiScreen;
-import net.minecraft.client.MinecraftClient;
 import com.eatgrapes.hina.setting.*;
 
 public class ClickGuiModule extends Module {
@@ -27,17 +26,15 @@ public class ClickGuiModule extends Module {
 
     @Override
     protected void onEnable() {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.currentScreen == null) {
-            mc.execute(() -> {
-                mc.setScreen(new ClickGuiScreen(this));
+        if (client.screen == null) {
+            client.execute(() -> {
+                client.setScreen(new ClickGuiScreen(this));
             });
         }
     }
     
     @Override
     protected void onDisable() {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.currentScreen instanceof ClickGuiScreen) mc.setScreen(null);
+        if (client.screen instanceof ClickGuiScreen) client.setScreen(null);
     }
 }

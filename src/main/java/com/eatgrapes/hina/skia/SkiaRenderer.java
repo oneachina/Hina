@@ -7,10 +7,10 @@ package com.eatgrapes.hina.skia;
 import com.eatgrapes.hina.skia.font.FontManager;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.Paint;
 import io.github.humbleui.types.Rect;
-import net.minecraft.client.render.BufferRenderer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL33;
@@ -31,7 +31,7 @@ public class SkiaRenderer {
              drawingLogic.accept(canvas);
         }
         if (SkiaContext.getContext() != null) SkiaContext.getContext().flush();
-        BufferRenderer.reset();
+        BufferUploader.reset();
         GL33.glBindSampler(0, 0);
         RenderSystem.disableBlend();
         GL11.glDisable(GL11.GL_BLEND);
@@ -52,7 +52,8 @@ public class SkiaRenderer {
         RenderSystem.activeTexture(GL13.GL_TEXTURE0);
         RenderSystem.disableCull();
     }
-    
+
+    @SuppressWarnings("unused")
     public static void drawIcon(Canvas canvas, String iconCode, float x, float y, float size, int color) {
         try (Paint paint = new Paint()) {
             paint.setColor(color);

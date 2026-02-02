@@ -6,7 +6,7 @@ package com.eatgrapes.hina.module;
 
 import com.eatgrapes.hina.event.EventBus;
 import com.eatgrapes.hina.setting.Setting;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ public abstract class Module {
     private Category category;
     private int key = -1;
     private final List<Setting<?>> settings = new ArrayList<>();
-    public final MinecraftClient client = MinecraftClient.getInstance();
+    public final Minecraft client = Minecraft.getInstance();
 
     public Module(String name, Category category) {
         this.name = name;

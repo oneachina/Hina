@@ -3,18 +3,18 @@
   "package": "com.eatgrapes.hina.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "HinaClientConnectionMixin",
-    "HinaKeyboardMixin",
+    "HinaConnectionMixin",
+    "HinaKeyboardHandlerdMixin",
     "HinaLightmapMixin",
-    "HinaMinecraftClientMixin",
+    "HinaMinecraftMixin",
     "HinaRenderMixin",
     "HinaWindowMixin",
-    "HinaWorldRendererMixin"
+    "HinaLevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "HinaClientPlayerEntityMixin"
+    "HinaLocalPlayerMixin"
   ]
 }

@@ -9,9 +9,10 @@ import com.eatgrapes.hina.module.impl.render.ClickGuiModule;
 import com.eatgrapes.hina.skia.SkiaRenderer;
 import com.eatgrapes.hina.ui.clickgui.Panel;
 import com.eatgrapes.hina.ui.clickgui.ModuleButton;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public class ClickGuiScreen extends Screen {
     private final float GUI_SCALE = 1.2f;
 
     public ClickGuiScreen(ClickGuiModule module) {
-        super(Text.of("ClickGUI"));
+        super(Component.translatable("hina.clickgui.name"));
         this.module = module;
         float x = 20;
         float y = 20;
@@ -37,13 +38,13 @@ public class ClickGuiScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(@NotNull GuiGraphics context, int mouseX, int mouseY, float delta) {
         float target = closing ? 0f : 1f;
         openAnimationProgress += (target - openAnimationProgress) * 0.15f;
 
         if (closing && openAnimationProgress < 0.05f) {
-            assert this.client != null;
-            this.client.setScreen(null);
+            assert this.minecraft != null;
+            this.minecraft.setScreen(null);
             return;
         }
 
@@ -78,7 +79,8 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        double mcScale = this.client.getWindow().getScaleFactor();
+        assert this.minecraft != null;
+        double mcScale = this.minecraft.getWindow().getGuiScale();
         double transformedMouseX = mouseX * (mcScale / GUI_SCALE);
         double transformedMouseY = mouseY * (mcScale / GUI_SCALE);
         for (Panel panel : panels) {
@@ -89,7 +91,8 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        double mcScale = this.client.getWindow().getScaleFactor();
+        assert this.minecraft != null;
+        double mcScale = this.minecraft.getWindow().getGuiScale();
         double transformedMouseX = mouseX * (mcScale / GUI_SCALE);
         double transformedMouseY = mouseY * (mcScale / GUI_SCALE);
         for (Panel panel : panels) panel.mouseReleased(transformedMouseX, transformedMouseY, button);
@@ -97,7 +100,7 @@ public class ClickGuiScreen extends Screen {
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 }

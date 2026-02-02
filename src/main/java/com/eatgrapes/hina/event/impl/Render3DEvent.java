@@ -5,37 +5,37 @@
 package com.eatgrapes.hina.event.impl;
 
 import com.eatgrapes.hina.event.Event;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.MultiBufferSource;
 import org.joml.Matrix4f;
 
 public class Render3DEvent extends Event {
-    private final RenderTickCounter tickCounter;
-    private final MatrixStack matrixStack;
+    private final DeltaTracker tickCounter;
+    private final PoseStack poseStack;
     private final Matrix4f projectionMatrix;
-    private final VertexConsumerProvider.Immediate vertexConsumers;
+    private final MultiBufferSource.BufferSource vertexConsumers;
 
-    public Render3DEvent(RenderTickCounter tickCounter, MatrixStack matrixStack, Matrix4f projectionMatrix, VertexConsumerProvider.Immediate vertexConsumers) {
+    public Render3DEvent(DeltaTracker tickCounter, PoseStack poseStack, Matrix4f projectionMatrix, MultiBufferSource.BufferSource vertexConsumers) {
         this.tickCounter = tickCounter;
-        this.matrixStack = matrixStack;
+        this.poseStack = poseStack;
         this.projectionMatrix = projectionMatrix;
         this.vertexConsumers = vertexConsumers;
     }
 
-    public RenderTickCounter getTickCounter() {
+    public DeltaTracker getTickCounter() {
         return tickCounter;
     }
 
-    public MatrixStack getMatrixStack() {
-        return matrixStack;
+    public PoseStack getPoseStack() {
+        return poseStack;
     }
 
     public Matrix4f getProjectionMatrix() {
         return projectionMatrix;
     }
 
-    public VertexConsumerProvider.Immediate getVertexConsumers() {
+    public MultiBufferSource.BufferSource getVertexConsumers() {
         return vertexConsumers;
     }
 }
