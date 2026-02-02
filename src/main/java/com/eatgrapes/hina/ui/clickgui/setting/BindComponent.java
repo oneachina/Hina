@@ -1,10 +1,12 @@
 package com.eatgrapes.hina.ui.clickgui.setting;
 
 import com.eatgrapes.hina.module.Module;
+import com.eatgrapes.hina.setting.Setting;
 import com.eatgrapes.hina.skia.font.FontManager;
 import com.eatgrapes.hina.utils.KeyUtil;
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.Paint;
+import io.github.humbleui.types.Rect;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -16,30 +18,31 @@ public class BindComponent extends Component {
     private boolean listening;
     private float animationHover = 0f;
 
-    public BindComponent(Module module, float width, float height) {
-        super(null, width, height);
+    public BindComponent(Module module, Setting<?> setting, float width, float height) {
+        super(setting, width, height);
         this.module = module;
     }
 
     @Override
     public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
-        boolean hovered = isHovered(mouseX, mouseY, x, y);
-        animationHover += ((hovered ? 1f : 0f) - animationHover) * 0.15f;
-
         try (Paint paint = new Paint()) {
+            // 背景
             paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(io.github.humbleui.types.Rect.makeXYWH(x, y, width, height), paint);
+            canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
 
-            if (animationHover > 0.01f) {
-                paint.setColor(0xFFFFFFFF);
-                paint.setAlphaf(animationHover * 0.05f);
-                canvas.drawRect(io.github.humbleui.types.Rect.makeXYWH(x, y, width, height), paint);
+            if (isHovered(mouseX, mouseY, x, y)) {
+                paint.setColor(0x1AFFFFFF);
+                canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
             }
 
-            String text = listening ? "[Listening...]" : "Bind: " + KeyUtil.getKeyName(module.getKey());
+            String keyName = module.getKey() == -1 ? "NONE" : GLFW.glfwGetKeyName(module.getKey(), 0);
+            if (keyName == null) keyName = "Key: " + module.getKey(); // 处理特殊键
+
+            String text = listening ? "[Listening...]" : "Bind: " + keyName.toUpperCase();
+
             try (Paint textPaint = new Paint()) {
                 textPaint.setColor(listening ? 0xFF55FF55 : 0xFFAAAAAA);
-                canvas.drawString(text, x + 10, y + height / 2 + 5, FontManager.INSTANCE.getTextFont(13), textPaint);
+                canvas.drawString(text, x + 10, y + height / 2 + 5, FontManager.INSTANCE.getTextFont(14), textPaint);
             }
         }
     }
@@ -48,7 +51,7 @@ public class BindComponent extends Component {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isHovered(mouseX, mouseY, (float)mouseX, (float)mouseY)) {
             if (button == 1) {
-                listening = !listening;
+                this.listening = !this.listening;
                 return true;
             }
         }

@@ -61,6 +61,10 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        for (Panel panel : panels) {
+            if (panel.handleKeyPress(keyCode)) return true;
+        }
+
         if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
             closing = true;
             return true;
@@ -72,10 +76,18 @@ public class ClickGuiScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         assert this.minecraft != null;
         double mcScale = this.minecraft.getWindow().getGuiScale();
-        double transformedMouseX = mouseX * (mcScale / GUI_SCALE);
-        double transformedMouseY = mouseY * (mcScale / GUI_SCALE);
+
+        float mouseScaledX = (float) (mouseX * (mcScale / GUI_SCALE));
+        float mouseScaledY = (float) (mouseY * (mcScale / GUI_SCALE));
+
+        float centerX = this.width / 2f;
+        float centerY = this.height / 2f;
+
+        float actualMouseX = (mouseScaledX - (centerX * (1 - openAnimationProgress))) / openAnimationProgress;
+        float actualMouseY = (mouseScaledY - (centerY * (1 - openAnimationProgress))) / openAnimationProgress;
+
         for (Panel panel : panels) {
-            if (panel.mouseClicked(transformedMouseX, transformedMouseY, button)) return true;
+            if (panel.mouseClicked(actualMouseX, actualMouseY, button)) return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }

@@ -37,7 +37,7 @@ public class ModuleButton {
             else if (setting instanceof ColorSetting) components.add(new ColorComponent((ColorSetting) setting, width, COLOR_HEIGHT));
         }
 
-        components.add(new BindComponent(module, width, SETTING_HEIGHT));
+        components.add(new BindComponent(module, new BindSetting("Bind", module.getKey()), width, SETTING_HEIGHT));
     }
 
     public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
@@ -120,5 +120,16 @@ public class ModuleButton {
 
     private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+    }
+
+    public boolean handleKeyPress(int keyCode) {
+        if (extended) {
+            for (Component comp : components) {
+                if (comp instanceof BindComponent) {
+                    if (((BindComponent) comp).onKeyPressed(keyCode)) return true;
+                }
+            }
+        }
+        return false;
     }
 }

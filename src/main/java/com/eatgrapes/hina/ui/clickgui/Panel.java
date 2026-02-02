@@ -132,4 +132,13 @@ public class Panel {
     private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
+
+    public boolean handleKeyPress(int keyCode) {
+        if (expanded) {
+            for (ModuleButton btn : moduleButtons) {
+                if (btn.handleKeyPress(keyCode)) return true;
+            }
+        }
+        return false;
+    }
 }
