@@ -15,7 +15,7 @@ import org.lwjgl.glfw.GLFW;
  * @Date: 2026/2/1 12:32
  */
 public class Flight extends Module {
-    private final ModeSetting mode = new ModeSetting("Mode", "Creative", "Creative", "Vanilla");
+    private final ModeSetting mode = new ModeSetting("Mode", "Vanilla", "Vanilla");
 
     private final NumberSetting vSpeed = new NumberSetting("V-Speed", 0.05, 0.01, 1.0, 0.01);
     private final BooleanSetting vSprint = new BooleanSetting("V-Sprint", true);
@@ -33,9 +33,9 @@ public class Flight extends Module {
         addSetting(vSprintSpeed);
         addSetting(bypass);
 
-        vSpeed.setVisibility(() -> mode.getValue().equals("Creative"));
-        vSprint.setVisibility(() -> mode.getValue().equals("Creative"));
-        vSprintSpeed.setVisibility(() -> mode.getValue().equals("Creative") && vSprint.getValue());
+        vSpeed.setVisibility(() -> mode.getValue().equals("Vanilla"));
+        vSprint.setVisibility(() -> mode.getValue().equals("Vanilla"));
+        vSprintSpeed.setVisibility(() -> mode.getValue().equals("Vanilla") && vSprint.getValue());
     }
 
     @Override

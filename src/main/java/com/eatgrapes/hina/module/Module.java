@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Module {
-    private String name;
+    private final String name;
     private boolean enabled;
-    private Category category;
+    private final Category category;
     private int key = -1;
     private final List<Setting<?>> settings = new ArrayList<>();
     public final Minecraft client = Minecraft.getInstance();
