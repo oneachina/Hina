@@ -1,5 +1,5 @@
 /**
- * @author Eatgrapes, oneachina
+ * @author Eatgrapes
  * @link github.com/Eatgrapes
  */
 package com.eatgrapes.hina.ui.clickgui;
@@ -28,7 +28,7 @@ public class Panel {
     private final List<ModuleButton> moduleButtons = new ArrayList<>();
     private float animationProgress;
     private float arrowRotation;
-    private final float HEADER_HEIGHT = 32; 
+    private final float HEADER_HEIGHT = 32;
     private final float CORNER_RADIUS = 8;
     private final float FONT_SIZE_HEADER = 15;
     private final float ICON_SIZE = 16;
@@ -38,7 +38,7 @@ public class Panel {
         this.category = category;
         this.x = x;
         this.y = y;
-        this.width = width + 30; 
+        this.width = width + 30;
         this.height = HEADER_HEIGHT;
         this.expanded = true;
         this.animationProgress = 1.0f;
@@ -78,7 +78,7 @@ public class Panel {
             float arrowX = x + width - 15;
             canvas.translate(arrowX, centerY);
             canvas.rotate(arrowRotation);
-            SkiaRenderer.drawCenteredIcon(canvas, Icon.EXPAND_LESS, 0, 0, ICON_SIZE - 2, 0xFFFFFFFF); 
+            SkiaRenderer.drawCenteredIcon(canvas, Icon.EXPAND_LESS, 0, 0, ICON_SIZE - 2, 0xFFFFFFFF);
             canvas.restore();
         }
         if (animationProgress > 0.01f) {
@@ -128,12 +128,8 @@ public class Panel {
         }
         return false;
     }
-    
+
     private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
-    }
-
-    public List<ModuleButton> getModuleButtons() {
-        return moduleButtons;
     }
 }
