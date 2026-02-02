@@ -10,8 +10,7 @@ import com.eatgrapes.hina.module.Module;
 import com.eatgrapes.hina.skia.SkiaRenderer;
 import com.eatgrapes.hina.skia.font.FontManager;
 import com.eatgrapes.hina.skia.font.Icon;
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.*;
 import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
 import java.util.ArrayList;
@@ -70,8 +69,8 @@ public class Panel {
             textPaint.setColor(0xFFFFFFFF);
             float centerY = y + HEADER_HEIGHT / 2;
             SkiaRenderer.drawCenteredIcon(canvas, category.getIcon(), x + 18, centerY, ICON_SIZE, 0xFFFFFFFF);
-            io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(FONT_SIZE_HEADER);
-            io.github.humbleui.skija.FontMetrics metrics = font.getMetrics();
+            Font font = FontManager.INSTANCE.getTextFont(FONT_SIZE_HEADER);
+            FontMetrics metrics = font.getMetrics();
             float textY = centerY - (metrics.getAscent() + metrics.getDescent()) / 2;
             canvas.drawString(category.getName(), x + 34, textY, font, textPaint);
             canvas.save();
@@ -117,16 +116,15 @@ public class Panel {
         return false;
     }
 
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public void mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) dragging = false;
         if (expanded) {
             float yOffset = y + HEADER_HEIGHT;
             for (ModuleButton btn : moduleButtons) {
-                if (btn.mouseReleased(mouseX, mouseY, button, x, yOffset)) return true;
+                if (btn.mouseReleased(mouseX, mouseY, button, x, yOffset)) return;
                 yOffset += btn.getTotalHeight();
             }
         }
-        return false;
     }
     
     private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
