@@ -61,15 +61,6 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        for (Panel panel : panels) {
-            for (ModuleButton mb : panel.getModuleButtons()) {
-                if (mb.isBinding()) {
-                    mb.onKey(keyCode);
-                    return true;
-                }
-            }
-        }
-
         if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
             closing = true;
             return true;
