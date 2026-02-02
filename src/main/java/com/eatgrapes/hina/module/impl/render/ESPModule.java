@@ -69,7 +69,7 @@ public class ESPModule extends Module {
         PoseStack stack = event.getPoseStack();
         float lineW = thickness.getValue().floatValue();
 
-        for (Entity entity : client.level.getEntities()) {
+        for (Entity entity : client.level.getEntities().getAll()) {
             if (entity == client.player || entity.isRemoved()) continue;
 
             int colorInt = getColorInt(entity);
