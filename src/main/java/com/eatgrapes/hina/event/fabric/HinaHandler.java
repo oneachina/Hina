@@ -18,14 +18,15 @@ public class HinaHandler {
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.getResourceManager() != null && !FontManager.INSTANCE.isInitialized()) {
+            client.getResourceManager();
+            if (!FontManager.INSTANCE.isInitialized()) {
                 try {
                     FontManager.INSTANCE.init();
                 } catch (Exception ignored) {
                 }
             }
-            while (HinaClient.INSTANCE.clickGuiKey.wasPressed()) {
-                if (!(client.currentScreen instanceof ClickGuiScreen)) {
+            while (HinaClient.INSTANCE.clickGuiKey.isDown()) {
+                if (!(client.screen instanceof ClickGuiScreen)) {
                     HinaClient.INSTANCE.moduleManager.getClickGuiModule().setEnabled(true);
                 }
             }
