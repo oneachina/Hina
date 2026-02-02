@@ -5,6 +5,7 @@
 package com.eatgrapes.hina.ui.clickgui;
 
 import com.eatgrapes.hina.module.Module;
+import com.eatgrapes.hina.module.impl.render.ClickGuiModule;
 import com.eatgrapes.hina.setting.*;
 import com.eatgrapes.hina.skia.font.FontManager;
 import com.eatgrapes.hina.ui.clickgui.setting.*;
@@ -13,7 +14,6 @@ import io.github.humbleui.skija.Paint;
 import io.github.humbleui.types.Rect;
 import java.util.ArrayList;
 import java.util.List;
-import com.eatgrapes.hina.module.impl.render.ClickGuiModule;
 
 public class ModuleButton {
     private final Module module;
@@ -23,7 +23,7 @@ public class ModuleButton {
     private boolean extended = false;
     private float enableProgress = 0f;
     private float extensionProgress = 0f;
-    private final float SETTING_HEIGHT = 26;
+    private final float SETTING_HEIGHT = 26; 
     private final float COLOR_HEIGHT = 100;
 
     public ModuleButton(Module module, float width, float height) {
@@ -39,52 +39,51 @@ public class ModuleButton {
 
         components.add(new BindComponent(module, new BindSetting("Bind", module.getKey()), width, SETTING_HEIGHT));
     }
-
+    
     public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
-        float targetEnable = module.isEnabled() ? 1.0f : 0.0f;
-        enableProgress += (targetEnable - enableProgress) * 0.2f;
-
-        float targetExtension = extended ? 1.0f : 0.0f;
-        extensionProgress += (targetExtension - extensionProgress) * 0.2f;
-
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
-
-            if (enableProgress > 0.01f) {
-                paint.setColor(ClickGuiModule.getThemeColor());
-                paint.setAlphaf(enableProgress * 0.2f);
-                canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
+        float target = module.isEnabled() ? 1.0f : 0.0f;
+        enableProgress += (target - enableProgress) * 0.2f;
+        float extTarget = extended ? 1.0f : 0.0f;
+        extensionProgress += (extTarget - extensionProgress) * 0.2f;
+        if (enableProgress > 0.01f) {
+            try (Paint fill = new Paint()) {
+                fill.setColor(ClickGuiModule.getThemeColor());
+                float centerX = x + width / 2;
+                float currentWidth = width * enableProgress;
+                canvas.drawRect(Rect.makeXYWH(centerX - currentWidth / 2, y, currentWidth, height), fill);
             }
         }
-
         try (Paint textPaint = new Paint()) {
-            textPaint.setColor(module.isEnabled() ? ClickGuiModule.getThemeColor() : 0xFFAAAAAA);
-            canvas.drawString(module.getName(), x + 10, y + height / 2 + 5, FontManager.INSTANCE.getTextFont(14), textPaint);
+            textPaint.setColor(module.isEnabled() ? 0xFFFFFFFF : 0xFFAAAAAA);
+            io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(14);
+            io.github.humbleui.skija.FontMetrics metrics = font.getMetrics();
+            float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
+            canvas.drawString(module.getName(), x + 12, textY, font, textPaint);
         }
-
-        if (extended || extensionProgress > 0.01f) {
+        if (extensionProgress > 0.01f) {
             float yOffset = y + height;
+            canvas.save();
+            float totalSettingsHeight = 0;
+            for(Component c : components) totalSettingsHeight += c.getHeight();
+            canvas.clipRect(Rect.makeXYWH(x, y + height, width, totalSettingsHeight * extensionProgress));
             for (Component comp : components) {
-                if (!comp.getSetting().isVisible()) continue;
                 comp.render(canvas, x, yOffset, mouseX, mouseY);
                 yOffset += comp.getHeight();
             }
+            canvas.restore();
         }
     }
-
+    
     public float getTotalHeight() {
         float h = height;
-        if (extended || extensionProgress > 0.01f) {
-            float settingsHeight = 0;
-            for (Component comp : components) {
-                settingsHeight += comp.getHeight();
-            }
-            h = height + settingsHeight * extensionProgress;
+        if (extensionProgress > 0.01f) {
+             float settingsHeight = 0;
+             for (Component comp : components) settingsHeight += comp.getHeight();
+             h = height + settingsHeight * extensionProgress;
         }
         return h;
     }
-
+    
     public boolean mouseClicked(double mouseX, double mouseY, int button, float x, float y) {
         if (isHovered(mouseX, mouseY, x, y, width, height)) {
             if (button == 0) {
@@ -98,26 +97,24 @@ public class ModuleButton {
         if (extended) {
             float yOffset = y + height;
             for (Component comp : components) {
-                if (!comp.getSetting().isVisible()) continue;
                 if (comp.mouseClicked(mouseX, mouseY, button)) return true;
                 yOffset += comp.getHeight();
             }
         }
         return false;
     }
-
+    
     public boolean mouseReleased(double mouseX, double mouseY, int button, float x, float y) {
         if (extended) {
             float yOffset = y + height;
             for (Component comp : components) {
-                if (!comp.getSetting().isVisible()) continue;
                 if (comp.mouseReleased(mouseX, mouseY, button)) return true;
                 yOffset += comp.getHeight();
             }
         }
         return false;
     }
-
+    
     private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
@@ -125,8 +122,8 @@ public class ModuleButton {
     public boolean handleKeyPress(int keyCode) {
         if (extended) {
             for (Component comp : components) {
-                if (comp instanceof BindComponent) {
-                    if (((BindComponent) comp).onKeyPressed(keyCode)) return true;
+                if (comp instanceof BindComponent bind) {
+                    if (bind.onKeyPressed(keyCode)) return true;
                 }
             }
         }

@@ -3,7 +3,6 @@ package com.eatgrapes.hina.ui.clickgui.setting;
 import com.eatgrapes.hina.module.Module;
 import com.eatgrapes.hina.setting.Setting;
 import com.eatgrapes.hina.skia.font.FontManager;
-import com.eatgrapes.hina.utils.KeyUtil;
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.Paint;
 import io.github.humbleui.types.Rect;
@@ -16,7 +15,7 @@ import org.lwjgl.glfw.GLFW;
 public class BindComponent extends Component {
     private final Module module;
     private boolean listening;
-    private float animationHover = 0f;
+    private float currentX, currentY;
 
     public BindComponent(Module module, Setting<?> setting, float width, float height) {
         super(setting, width, height);
@@ -25,8 +24,10 @@ public class BindComponent extends Component {
 
     @Override
     public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
+        this.currentX = x;
+        this.currentY = y;
+
         try (Paint paint = new Paint()) {
-            // 背景
             paint.setColor(0xCC1A1A1A);
             canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
 
@@ -36,7 +37,7 @@ public class BindComponent extends Component {
             }
 
             String keyName = module.getKey() == -1 ? "NONE" : GLFW.glfwGetKeyName(module.getKey(), 0);
-            if (keyName == null) keyName = "Key: " + module.getKey(); // 处理特殊键
+            if (keyName == null) keyName = "Key: " + module.getKey();
 
             String text = listening ? "[Listening...]" : "Bind: " + keyName.toUpperCase();
 
@@ -49,11 +50,9 @@ public class BindComponent extends Component {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (isHovered(mouseX, mouseY, (float)mouseX, (float)mouseY)) {
-            if (button == 1) {
-                this.listening = !this.listening;
-                return true;
-            }
+        if (isHovered(mouseX, mouseY, currentX, currentY) && button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            this.listening = !this.listening;
+            return true;
         }
         return false;
     }
@@ -61,9 +60,9 @@ public class BindComponent extends Component {
     public boolean onKeyPressed(int key) {
         if (listening) {
             if (key == GLFW.GLFW_KEY_ESCAPE) {
-                listening = false; // 退出监听
+                listening = false;
             } else if (key == GLFW.GLFW_KEY_BACKSPACE) {
-                module.setKey(-1); // 重置为 NONE
+                module.setKey(-1);
                 listening = false;
             } else {
                 module.setKey(key);
