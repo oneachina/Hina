@@ -3,6 +3,7 @@
   "id": "hinaclient",
   "version": "${version}",
   "name": "Hina Client",
+  "accessWidener": "hina.accesswidener",
   "description": "A custom client for Minecraft 1.21.4",
   "authors": [
     "Eatgrapes"
