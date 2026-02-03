@@ -64,8 +64,8 @@ public class ESPModule extends Module {
         if (client.level == null || client.player == null || event.getTickCounter() == null) return;
 
         float delta = event.getTickCounter().getGameTimeDeltaPartialTick(false);
-        Vec3 camPos = client.gameRenderer.getMainCamera().getPosition();
-        VertexConsumer vc = event.getVertexConsumers().getBuffer(RenderUtils.LINES_NO_DEPTH);
+        Vec3 camPos = client.gameRenderer.getMainCamera().position();
+        VertexConsumer vc = event.getVertexConsumers().getBuffer(RenderUtils.QUADS_NO_DEPTH);
         PoseStack stack = event.getPoseStack();
         float lineW = thickness.getValue().floatValue();
 
