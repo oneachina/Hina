@@ -6,9 +6,11 @@ package com.eatgrapes.hina.mixin;
 
 import com.eatgrapes.hina.event.EventBus;
 import com.eatgrapes.hina.event.impl.ClientTickEvent;
+import com.eatgrapes.hina.event.skia.EventSkiaInit;
 import com.eatgrapes.hina.skia.SkiaContext;
 import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.platform.Window;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -34,7 +36,18 @@ public abstract class HinaMinecraftMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     public void init(CallbackInfo ci) {
-        SkiaContext.createSurface(window.getWidth(), window.getHeight());
+        SkiaContext instance = SkiaContext.INSTANCE;
+
+        int[] width = new int[1];
+        int[] height = new int[1];
+
+        long windowHandle = Minecraft.getInstance().getWindow().getWindow();
+        GLFW.glfwGetFramebufferSize(windowHandle, width, height);
+
+        int finalWidth = Math.max(width[0], 1);
+        int finalHeight = Math.max(height[0], 1);
+
+        EventBus.INSTANCE.post(new EventSkiaInit(finalWidth, finalHeight));
     }
 
     @Inject(method = "tick", at = @At("HEAD"))

@@ -5,27 +5,22 @@
 package com.eatgrapes.hina.utils.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.*;
 import org.joml.Matrix4f;
 
 public class RenderUtils {
     public static final RenderType LINES_NO_DEPTH = RenderType.create(
             "lines_no_depth",
-            DefaultVertexFormat.POSITION_COLOR_NORMAL,
-            VertexFormat.Mode.LINES,
             1536,
             false,
             false,
+            RenderPipelines.LINES,
             RenderType.CompositeState.builder()
-                    .setShaderState(RenderStateShard.RENDERTYPE_LINES_SHADER)
-                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
-                    .setCullState(RenderStateShard.NO_CULL)
+                    .setTextureState(RenderStateShard.NO_TEXTURE)
+                    .setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
+                    .setOutputState(RenderStateShard.MAIN_TARGET)
                     .createCompositeState(false)
     );
 

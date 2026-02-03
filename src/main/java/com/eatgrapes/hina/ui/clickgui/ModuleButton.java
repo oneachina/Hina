@@ -1,5 +1,5 @@
 /**
- * @author Eatgrapes
+ * @author Eatgrapes, oneachina
  * @link github.com/Eatgrapes
  */
 package com.eatgrapes.hina.ui.clickgui;
@@ -11,6 +11,7 @@ import com.eatgrapes.hina.skia.font.FontManager;
 import com.eatgrapes.hina.ui.clickgui.setting.*;
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.PaintMode;
 import io.github.humbleui.types.Rect;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ public class ModuleButton {
 
     public ModuleButton(Module module, float width, float height) {
         this.module = module;
+        // this.enableProgress = module.isEnabled() ? 1.0f : 0.0f;
         this.width = width;
         this.height = height;
         for (Setting<?> setting : module.getSettings()) {
@@ -39,7 +41,7 @@ public class ModuleButton {
 
         components.add(new BindComponent(module, new BindSetting("Bind", module.getKey()), width, SETTING_HEIGHT));
     }
-    
+
     public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
         float target = module.isEnabled() ? 1.0f : 0.0f;
         enableProgress += (target - enableProgress) * 0.2f;
@@ -47,7 +49,11 @@ public class ModuleButton {
         extensionProgress += (extTarget - extensionProgress) * 0.2f;
         if (enableProgress > 0.01f) {
             try (Paint fill = new Paint()) {
-                fill.setColor(ClickGuiModule.getThemeColor());
+                fill.setMode(PaintMode.FILL);
+
+                int themeColor = ClickGuiModule.getThemeColor();
+                fill.setColor(themeColor);
+
                 float centerX = x + width / 2;
                 float currentWidth = width * enableProgress;
                 canvas.drawRect(Rect.makeXYWH(centerX - currentWidth / 2, y, currentWidth, height), fill);
