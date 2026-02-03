@@ -1,5 +1,5 @@
 /**
- * @author Eatgrapes
+ * @author Eatgrapes, oneachina
  * @link github.com/Eatgrapes
  */
 package com.eatgrapes.hina.ui.clickgui;
@@ -77,7 +77,7 @@ public class Panel {
             float arrowX = x + width - 15;
             canvas.translate(arrowX, centerY);
             canvas.rotate(arrowRotation);
-            SkiaRenderer.drawCenteredIcon(canvas, Icon.EXPAND_LESS, 0, 0, ICON_SIZE - 2, 0xFFFFFFFF); 
+            SkiaRenderer.drawCenteredIcon(canvas, Icon.EXPAND_LESS, 0, 0, ICON_SIZE - 2, 0xFFFFFFFF);
             canvas.restore();
         }
         if (animationProgress > 0.01f) {

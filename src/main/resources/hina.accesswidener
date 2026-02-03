@@ -2,3 +2,4 @@ accessWidener v2 named
 
 accessible field net/minecraft/network/protocol/game/ServerboundMovePlayerPacket onGround Z
 accessible method net/minecraft/client/multiplayer/ClientLevel getEntities ()Lnet/minecraft/world/level/entity/LevelEntityGetter;
+accessible field com/mojang/blaze3d/opengl/GlStateManager BLEND Lcom/mojang/blaze3d/opengl/GlStateManager$BlendState;
