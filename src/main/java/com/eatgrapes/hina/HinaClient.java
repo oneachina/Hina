@@ -11,6 +11,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class HinaClient implements ClientModInitializer {
@@ -31,7 +32,7 @@ public class HinaClient implements ClientModInitializer {
                 "key.hina.clickgui",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_RIGHT_SHIFT,
-                "category.hina.main"
+                KeyMapping.Category.register(Identifier.fromNamespaceAndPath("hina", "keymapping/clickgui"))
         ));
         HinaHandler.init();
         HinaHandler.initEvent();

@@ -12,6 +12,8 @@ import com.eatgrapes.hina.module.impl.render.ClickGuiModule;
 import com.eatgrapes.hina.ui.clickgui.Panel;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
@@ -70,36 +72,53 @@ public class ClickGuiScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent keyEvent) {
+        int keyCode = keyEvent.key();
+
         for (Panel panel : panels) {
             if (panel.handleKeyPress(keyCode)) return true;
         }
 
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
-            closing = true;
+        if (keyEvent.isEscape() || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
+            this.onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+
+        return super.keyPressed(keyEvent);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean canHandle) {
+        double mouseX = mouseButtonEvent.x();
+        double mouseY = mouseButtonEvent.y();
+        int button = mouseButtonEvent.button();
+
         double mcScale = this.minecraft.getWindow().getGuiScale();
         double transformedMouseX = mouseX * (mcScale / GUI_SCALE);
         double transformedMouseY = mouseY * (mcScale / GUI_SCALE);
+
         for (Panel panel : panels) {
             if (panel.mouseClicked(transformedMouseX, transformedMouseY, button)) return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+
+        return super.mouseClicked(mouseButtonEvent, canHandle);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent mouseButtonEvent) {
+        double mouseX = mouseButtonEvent.x();
+        double mouseY = mouseButtonEvent.y();
+        int button = mouseButtonEvent.button();
+
         double mcScale = this.minecraft.getWindow().getGuiScale();
         double transformedMouseX = mouseX * (mcScale / GUI_SCALE);
         double transformedMouseY = mouseY * (mcScale / GUI_SCALE);
-        for (Panel panel : panels) panel.mouseReleased(transformedMouseX, transformedMouseY, button);
-        return super.mouseReleased(mouseX, mouseY, button);
+
+        for (Panel panel : panels) {
+            panel.mouseReleased(transformedMouseX, transformedMouseY, button);
+        }
+
+        return super.mouseReleased(mouseButtonEvent);
     }
     
     @Override
@@ -109,7 +128,6 @@ public class ClickGuiScreen extends Screen {
 
     @EventListener
     public void onSkiaRender(EventSkiaDrawScene event) {
-        assert this.minecraft != null;
         if (this.minecraft.screen != this) {
             EventBus.INSTANCE.unregister(this);
             return;

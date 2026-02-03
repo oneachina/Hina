@@ -8,7 +8,7 @@ import io.github.humbleui.skija.Data;
 import io.github.humbleui.skija.Font;
 import io.github.humbleui.skija.Typeface;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -33,12 +33,12 @@ public class FontManager {
         if (initialized) return;
         try {
             InputStream textStream = Minecraft.getInstance().getResourceManager()
-                .getResource(ResourceLocation.fromNamespaceAndPath("hina", "fonts/pingfang-regular.ttf")).get().open();
+                .getResource(Identifier.fromNamespaceAndPath("hina", "fonts/pingfang-regular.ttf")).get().open();
             byte[] textBytes = textStream.readAllBytes();
             textTypeface = Typeface.makeFromData(Data.makeFromBytes(textBytes));
             
             InputStream iconStream = Minecraft.getInstance().getResourceManager()
-                .getResource(ResourceLocation.fromNamespaceAndPath("hina", "fonts/icon.ttf")).get().open();
+                .getResource(Identifier.fromNamespaceAndPath("hina", "fonts/icon.ttf")).get().open();
             byte[] iconBytes = iconStream.readAllBytes();
             iconTypeface = Typeface.makeFromData(Data.makeFromBytes(iconBytes));
             

@@ -41,7 +41,7 @@ public abstract class HinaMinecraftMixin {
         int[] width = new int[1];
         int[] height = new int[1];
 
-        long windowHandle = Minecraft.getInstance().getWindow().getWindow();
+        long windowHandle = Minecraft.getInstance().getWindow().handle();
         GLFW.glfwGetFramebufferSize(windowHandle, width, height);
 
         int finalWidth = Math.max(width[0], 1);

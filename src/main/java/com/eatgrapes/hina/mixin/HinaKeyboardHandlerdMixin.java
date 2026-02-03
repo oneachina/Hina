@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(KeyboardHandler.class)
 public class HinaKeyboardHandlerdMixin {
     @Inject(method = "keyPress", at = @At("HEAD"))
-    private void keyPress(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
+    private void keyPress(long window, int action, net.minecraft.client.input.KeyEvent keyEvent, CallbackInfo ci) {
         if (action == 1) {
-            EventBus.INSTANCE.post(new KeyEvent(key));
+            EventBus.INSTANCE.post(new KeyEvent(keyEvent.key()));
         }
     }
 }
