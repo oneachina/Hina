@@ -5,37 +5,41 @@
 package com.eatgrapes.hina.mixin;
 
 import com.eatgrapes.hina.event.EventBus;
-import com.eatgrapes.hina.event.impl.PacketEvent;
+import com.eatgrapes.hina.event.impl.packet.PacketEvent;
+import com.eatgrapes.hina.event.impl.packet.PacketType;
 import io.netty.channel.ChannelFutureListener;
 import net.minecraft.network.Connection;
+import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.PacketSendListener;
-import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import io.netty.channel.ChannelHandlerContext;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(Connection.class)
 public class HinaConnectionMixin {
-    @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;)V", at = @At("HEAD"), cancellable = true)
-    private void onSendPacket(Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener, CallbackInfo ci) {
-        PacketEvent.Send event = new PacketEvent.Send(packet);
+    @Redirect(
+            method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;Z)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;sendPacket(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;Z)V")
+    )
+    private void redirectSendPacket(Connection instance, Packet<?> packet, ChannelFutureListener listener, boolean flush) {
+        PacketEvent event = new PacketEvent(packet, PacketType.Send);
         EventBus.INSTANCE.post(event);
 
-        if (event.isCancelled()) {
-            ci.cancel();
+        if (!event.isCancelled()) {
+            ((ConnectionAccessor)instance).invokeSendPacket(event.getPacket(), listener, flush);
         }
     }
 
-    @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;)V", at = @At("HEAD"), cancellable = true)
-    private void onReceivePacket(io.netty.channel.ChannelHandlerContext context, Packet<?> packet, CallbackInfo ci) {
-        PacketEvent.Receive event = new PacketEvent.Receive(packet);
+    @Redirect(
+            method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;genericsFtw(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;)V")
+    )
+    private void redirectGenericsFtw(Packet<?> packet, PacketListener listener) {
+        PacketEvent event = new PacketEvent(packet, PacketType.Receive);
         EventBus.INSTANCE.post(event);
 
-        if (event.isCancelled()) {
-            ci.cancel();
+        if (!event.isCancelled()) {
+            ConnectionAccessor.genericsFtw(event.getPacket(), listener);
         }
     }
 }
