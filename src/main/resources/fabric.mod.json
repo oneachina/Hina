@@ -4,29 +4,29 @@
   "version": "${version}",
   "name": "Hina Client",
   "accessWidener": "hina.accesswidener",
-  "description": "A custom client for Minecraft 1.21.4",
+  "description": "A free Minecraft hacked client for Fabric (Hina Client)",
   "authors": [
     "Eatgrapes"
   ],
   "contact": {
     "homepage": "https://tanikaze.icu",
-    "sources": "https://github.com/Eatgrapes"
+    "sources": "https://github.com/oneachina/Hina"
   },
   "license": "MIT",
   "icon": "assets/hina/icon.png",
   "environment": "*",
   "entrypoints": {
     "client": [
-      "com.eatgrapes.hina.HinaClient"
+      "com.hinaclient.hina.HinaClient"
     ]
   },
   "mixins": [
     "hina.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.10",
-    "minecraft": "~1.21.4",
-    "java": ">=21",
+    "fabricloader": ">=0.18.4",
+    "minecraft": ">=1.21.11",
+    "java": ">=25",
     "fabric-api": "*"
   },
   "suggests": {
