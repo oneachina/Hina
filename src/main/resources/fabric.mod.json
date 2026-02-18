@@ -6,7 +6,8 @@
   "accessWidener": "hina.accesswidener",
   "description": "A free Minecraft hacked client for Fabric (Hina Client)",
   "authors": [
-    "Eatgrapes"
+    "oneachina",
+    "tanikaze"
   ],
   "contact": {
     "homepage": "https://tanikaze.icu",
@@ -27,7 +28,8 @@
     "fabricloader": ">=0.18.4",
     "minecraft": ">=1.21.11",
     "java": ">=21",
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "fabric-language-kotlin": ">=1.13.0"
   },
   "suggests": {
     "another-mod": "*"
