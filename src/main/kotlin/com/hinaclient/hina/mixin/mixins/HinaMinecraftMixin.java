@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.mixin;
+package com.hinaclient.hina.mixin.mixins;
 
 import com.hinaclient.hina.event.EventBus;
 import com.hinaclient.hina.event.impl.ClientTickEvent;

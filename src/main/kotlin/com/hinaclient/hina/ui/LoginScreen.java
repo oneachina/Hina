@@ -15,6 +15,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.InputStream;
@@ -33,6 +34,7 @@ public class LoginScreen extends Screen {
     private float hoverAlpha = 0f;
     private float textAnim = 0f;
     private final Random random = new Random();
+    private Boolean login = false;
 
     private final int COLOR_HINA_PURPLE = 0xFFD1C4E9;
     private final int COLOR_GEHENNA_BLUE = 0xFF5C6BC0;
@@ -40,12 +42,13 @@ public class LoginScreen extends Screen {
     private final int COLOR_CARD_BG = 0xCCFFFFFF;
 
     public LoginScreen(Screen parent) {
-        super(Component.literal("Login"));
+        super(Component.literal("login"));
         this.nextscreen = parent;
     }
 
     @Override
     protected void init() {
+        if (login) { this.minecraft.setScreen(nextscreen); return; }
         EventBus.INSTANCE.register(this);
         initTime = System.currentTimeMillis();
         isClosing = false;
@@ -58,7 +61,7 @@ public class LoginScreen extends Screen {
             var resource = this.minecraft.getResourceManager().getResource(Identifier.fromNamespaceAndPath("hina", "textures/gui/title/hina_bg.png"));
             if (resource.isPresent()) {
                 try (InputStream stream = resource.get().open()) {
-                    this.backgroundImage = Image.makeFromEncoded(stream.readAllBytes());
+                    this.backgroundImage = Image.makeDeferredFromEncodedBytes(stream.readAllBytes());
                 }
             }
         } catch (Exception ignored) {}
@@ -70,10 +73,16 @@ public class LoginScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {}
+    public void render(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {}
 
     @EventListener
     public void onSkiaRender(@NotNull EventSkiaDrawScene event) {
+        if (login) {
+            this.minecraft.setScreen(nextscreen);
+            EventBus.INSTANCE.unregister(this);
+            return;
+        }
+
         var canvas = event.getCanvas();
         long now = System.currentTimeMillis();
 
@@ -180,7 +189,11 @@ public class LoginScreen extends Screen {
         return super.mouseClicked(event, bl);
     }
 
-    private void startClosing() { isClosing = true; closingTime = System.currentTimeMillis(); }
+    private void startClosing() {
+        login = true;
+        isClosing = true;
+        closingTime = System.currentTimeMillis();
+    }
 
     @Override
     public boolean charTyped(@NotNull CharacterEvent event) {
@@ -211,4 +224,8 @@ public class LoginScreen extends Screen {
 
     @Override
     public void removed() { EventBus.INSTANCE.unregister(this); super.removed(); }
+
+    public Boolean isLogin() {
+        return login;
+    }
 }

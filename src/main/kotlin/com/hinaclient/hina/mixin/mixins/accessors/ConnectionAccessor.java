@@ -16,26 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.mixin;
+package com.hinaclient.hina.mixin.mixins.accessors;
 
-import com.hinaclient.hina.event.EventBus;
-import com.hinaclient.hina.event.mod.KeyEvent;
-import net.minecraft.client.KeyboardHandler;
+import net.minecraft.network.Connection;
+import net.minecraft.network.PacketListener;
+import net.minecraft.network.protocol.Packet;
+import io.netty.channel.ChannelFutureListener;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.gen.Invoker;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @Author: oneachina
- * @Date: 2026/2/1 12:39
+ * @Date: 2026/2/5 13:22
  */
-@Mixin(KeyboardHandler.class)
-public class HinaKeyboardHandlerdMixin {
-    @Inject(method = "keyPress", at = @At("HEAD"))
-    private void keyPress(long window, int action, net.minecraft.client.input.KeyEvent keyEvent, CallbackInfo ci) {
-        if (action == 1) {
-            EventBus.INSTANCE.post(new KeyEvent(keyEvent.key()));
-        }
+@Mixin(Connection.class)
+public interface ConnectionAccessor {
+    @Invoker("sendPacket")
+    void invokeSendPacket(Packet<?> packet, @Nullable ChannelFutureListener listener, boolean flush);
+
+    @Invoker("genericsFtw")
+    static <T extends PacketListener> void genericsFtw(Packet<T> packet, PacketListener listener) {
+        throw new UnsupportedOperationException();
     }
 }

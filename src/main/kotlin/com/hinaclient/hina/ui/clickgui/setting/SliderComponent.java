@@ -29,7 +29,7 @@ public class SliderComponent extends Component {
     private final NumberSetting numSetting;
     private float currentX, currentY;
     private boolean dragging;
-    
+
     public SliderComponent(NumberSetting setting, float width, float height) {
         super(setting, width, height);
         this.numSetting = setting;
@@ -42,7 +42,7 @@ public class SliderComponent extends Component {
         this.currentY = y;
         if (dragging) {
             float diff = mouseX - (x + 8);
-            double percent = Math.min(1, Math.max(0, diff / (width - 16)));
+            float percent = Math.clamp(diff / (width - 16), 0, 1);
             double newValue = numSetting.getMin() + (numSetting.getMax() - numSetting.getMin()) * percent;
             if (numSetting.getIncrement() != 0) newValue = Math.round(newValue / numSetting.getIncrement()) * numSetting.getIncrement();
             numSetting.setValue(newValue);
@@ -75,7 +75,7 @@ public class SliderComponent extends Component {
             canvas.drawString(valStr, x + width - 8 - valWidth, textY, font, textPaint);
         }
     }
-    
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!setting.isVisible()) return false;
@@ -85,7 +85,7 @@ public class SliderComponent extends Component {
         }
         return false;
     }
-    
+
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) dragging = false;

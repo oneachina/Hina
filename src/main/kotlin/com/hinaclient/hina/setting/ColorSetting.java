@@ -32,4 +32,8 @@ public class ColorSetting extends Setting<Integer> {
     public int getColor() {
         return getValue();
     }
+
+    public Color getJavaColor() {
+        return new Color(getValue());
+    }
 }

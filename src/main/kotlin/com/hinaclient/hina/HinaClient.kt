@@ -19,6 +19,7 @@
 package com.hinaclient.hina
 
 import com.hinaclient.hina.event.fabric.HinaHandler
+import com.hinaclient.hina.management.RotationManager
 import com.hinaclient.hina.management.config.ConfigManager
 import com.hinaclient.hina.module.ModuleManager
 import com.mojang.blaze3d.platform.InputConstants
@@ -40,6 +41,7 @@ class HinaClient : ClientModInitializer {
     lateinit var moduleManager: ModuleManager
     lateinit var configManager: ConfigManager
     lateinit var clickGuiKey: KeyMapping
+    lateinit var rotationManager: RotationManager
 
     override fun onInitializeClient() {
         INSTANCE = this
@@ -49,6 +51,9 @@ class HinaClient : ClientModInitializer {
 
         configManager = ConfigManager()
         configManager.load()
+
+        rotationManager = RotationManager.INSTANCE
+        rotationManager.init()
 
         clickGuiKey = KeyBindingHelper.registerKeyBinding(
             KeyMapping(

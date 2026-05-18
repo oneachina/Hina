@@ -18,6 +18,7 @@
 package com.hinaclient.hina.module.impl.render;
 
 import com.hinaclient.hina.event.EventListener;
+import com.hinaclient.hina.event.impl.AttackEvent;
 import com.hinaclient.hina.event.skia.EventSkiaDrawScene;
 import com.hinaclient.hina.module.Category;
 import com.hinaclient.hina.module.Module;
@@ -32,6 +33,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.PlayerSkin;
@@ -51,6 +53,7 @@ public class TargetHud extends Module {
     private float damageFlash = 0f;
     private float lastHp = -1f;
 
+    private LivingEntity currentTarget = null;
     private LivingEntity lastTarget = null;
     private long lastSeenTime = 0L;
 
@@ -69,13 +72,6 @@ public class TargetHud extends Module {
         if (!FontManager.INSTANCE.isInitialized()) FontManager.INSTANCE.init();
 
         var canvas = event.getCanvas();
-        LivingEntity currentTarget = null;
-
-        if (mc.crosshairPickEntity instanceof LivingEntity living) {
-            currentTarget = living;
-            lastTarget = living;
-            lastSeenTime = Util.getMillis();
-        }
 
         boolean shouldShow = currentTarget != null || (lastTarget != null && (Util.getMillis() - lastSeenTime) < 30000);
 
@@ -98,6 +94,13 @@ public class TargetHud extends Module {
 
             renderHud(canvas, displayEntity);
         }
+    }
+
+    @EventListener
+    public void onAttack(AttackEvent event) {
+        currentTarget = event.getTarget();
+        lastTarget = event.getTarget();
+        lastSeenTime = Util.getMillis();
     }
 
     private void renderHud(Canvas canvas, LivingEntity target) {

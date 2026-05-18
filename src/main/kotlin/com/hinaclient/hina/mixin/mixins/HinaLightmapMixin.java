@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.mixin;
+package com.hinaclient.hina.mixin.mixins;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.hinaclient.hina.HinaClient;
@@ -35,7 +35,7 @@ public class HinaLightmapMixin {
     private Object injectFullBright(Object original) {
         FullbrightModule fullbright = (FullbrightModule) HinaClient.getINSTANCE().moduleManager.getModuleByName("Fullbright");
         if (fullbright != null && fullbright.isEnabled()) {
-            return fullbright.getGamma().getValue();
+            return 10.0;
         }
         return original;
     }

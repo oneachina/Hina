@@ -21,7 +21,7 @@ package com.hinaclient.hina.module.impl.player;
 import com.hinaclient.hina.event.EventListener;
 import com.hinaclient.hina.event.impl.packet.PacketEvent;
 import com.hinaclient.hina.event.impl.packet.PacketType;
-import com.hinaclient.hina.mixin.ServerboundMovePlayerPacketAccessor;
+import com.hinaclient.hina.mixin.mixins.accessors.ServerboundMovePlayerPacketAccessor;
 import com.hinaclient.hina.module.Category;
 import com.hinaclient.hina.module.Module;
 import com.hinaclient.hina.setting.ModeSetting;

@@ -19,13 +19,14 @@ package com.hinaclient.hina.event.impl;
 
 import com.hinaclient.hina.event.Event;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 public class AttackEvent extends Event {
     private final Player player;
-    private final Entity target;
+    private final LivingEntity target;
 
-    public AttackEvent(Player player, Entity target) {
+    public AttackEvent(Player player, LivingEntity target) {
         this.player = player;
         this.target = target;
     }
@@ -34,7 +35,7 @@ public class AttackEvent extends Event {
         return player;
     }
 
-    public Entity getTarget() {
+    public LivingEntity getTarget() {
         return target;
     }
 }

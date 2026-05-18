@@ -27,6 +27,7 @@ import com.hinaclient.hina.skia.font.Icon;
 import io.github.humbleui.skija.*;
 import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
+import net.minecraft.client.Minecraft;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class Panel {
     private final List<ModuleButton> moduleButtons = new ArrayList<>();
     private float animationProgress;
     private float arrowRotation;
-    private final float HEADER_HEIGHT = 32; 
+    private final float HEADER_HEIGHT = 32;
     private final float CORNER_RADIUS = 8;
     private final float FONT_SIZE_HEADER = 15;
     private final float ICON_SIZE = 16;
@@ -51,7 +52,7 @@ public class Panel {
         this.category = category;
         this.x = x;
         this.y = y;
-        this.width = width + 30; 
+        this.width = width + 30;
         this.height = HEADER_HEIGHT;
         this.expanded = true;
         this.animationProgress = 1.0f;
@@ -64,17 +65,28 @@ public class Panel {
         if (dragging) {
             x = mouseX - dragX;
             y = mouseY - dragY;
+            clampToScreen();
         }
+
         float targetProgress = expanded ? 1.0f : 0.0f;
         animationProgress += (targetProgress - animationProgress) * 0.2f;
+        if (Math.abs(targetProgress - animationProgress) < 0.001f) animationProgress = targetProgress;
+
         float targetRotation = expanded ? 180f : 0f;
         arrowRotation += (targetRotation - arrowRotation) * 0.2f;
+        if (Math.abs(targetRotation - arrowRotation) < 0.5f) arrowRotation = targetRotation;
+
+        for (ModuleButton btn : moduleButtons) {
+            btn.update();
+        }
+
         float modulesHeight = 0;
         if (animationProgress > 0.01f) {
             for (ModuleButton btn : moduleButtons) modulesHeight += btn.getTotalHeight();
         }
         float currentContentHeight = modulesHeight * animationProgress;
         float totalHeight = HEADER_HEIGHT + currentContentHeight;
+
         try (Paint paint = new Paint()) {
             paint.setColor(0xCC1A1A1A);
             canvas.drawRRect(RRect.makeXYWH(x, y, width, totalHeight, CORNER_RADIUS), paint);
@@ -140,10 +152,6 @@ public class Panel {
             }
         }
     }
-    
-    private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
-        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
-    }
 
     public boolean handleKeyPress(int keyCode) {
         if (expanded) {
@@ -152,5 +160,24 @@ public class Panel {
             }
         }
         return false;
+    }
+
+    public void resetDrag() {
+        dragging = false;
+    }
+
+    private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
+        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+    }
+
+    private void clampToScreen() {
+        Minecraft mc = Minecraft.getInstance();
+        assert mc.screen != null;
+        int screenWidth = mc.screen.width;
+        int screenHeight = mc.screen.height;
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x + width > screenWidth) x = screenWidth - width;
+        if (y + height > screenHeight) y = screenHeight - height;
     }
 }

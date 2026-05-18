@@ -16,14 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.module.impl.render;
+package com.hinaclient.hina.mixin.mixins.accessors;
 
-import com.hinaclient.hina.module.Category;
-import com.hinaclient.hina.module.Module;
-import com.hinaclient.hina.setting.NumberSetting;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
-public class FullbrightModule extends Module {
-    public FullbrightModule() {
-        super("Fullbright", Category.RENDER);
-    }
+/**
+ * @Author: oneachina
+ * @Date: 2026/2/2 22:38
+ */
+@Mixin(targets = "com.mojang.blaze3d.opengl.GlStateManager$BlendState")
+public interface BlendStateAccessor {
+    @Accessor("srcRgb") @Mutable void setSrcRgb(int val);
+    @Accessor("dstRgb") @Mutable void setDstRgb(int val);
+    @Accessor("srcAlpha") @Mutable void setSrcAlpha(int val);
+    @Accessor("dstAlpha") @Mutable void setDstAlpha(int val);
 }

@@ -1,9 +1,8 @@
 {
   "required": true,
-  "package": "com.hinaclient.hina.mixin",
+  "package": "com.hinaclient.hina.mixin.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ConnectionAccessor",
     "HinaConnectionMixin",
     "HinaKeyboardHandlerdMixin",
     "HinaLevelRendererMixin",
@@ -11,15 +10,22 @@
     "HinaMinecraftMixin",
     "HinaRenderMixin",
     "HinaWindowMixin",
-    "ServerboundMovePlayerPacketAccessor"
+    "MixinEntity",
+    "accessors.ConnectionAccessor",
+    "accessors.ServerboundMovePlayerPacketAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "BlendStateAccessor",
+    "EntityRenderStateMixin",
     "HinaLocalPlayerMixin",
     "HinaTitleScreenMixin",
-    "MixinMultiPlayerGameMode"
+    "MixinEntityRenderer",
+    "MixinLivingEntityRenderer",
+    "MixinMultiPlayerGameMode",
+    "accessors.BlendStateAccessor",
+    "accessors.render.RenderSetupAccessor",
+    "accessors.render.RenderTypeAccessor"
   ]
 }

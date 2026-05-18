@@ -29,22 +29,24 @@ import io.github.humbleui.skija.*;
 import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
 
+import java.util.*;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ModuleList extends Module {
-    private final BooleanSetting bgenb = new BooleanSetting("BackGround", false);
     private final BooleanSetting iconenb = new BooleanSetting("Icon", true);
     private final BooleanSetting useThemeColor = new BooleanSetting("Use Theme Color", true);
     private final ColorSetting textColor = new ColorSetting("Text Color", 0xFFFFFFFF);
     private final Map<Module, Float> moduleProgressMap = new HashMap<>();
 
+    private static final float MODULE_HEIGHT = 30f;
+    private static final float PADDING = 10f;
+    private static final float SPACING = 2f;
+    private static final float ACCENT_WIDTH = 3f;
+    private static final float ACCENT_OFFSET = 2f;
+
     public ModuleList() {
         super("ModuleList", Category.RENDER);
-        addSetting(bgenb);
         addSetting(iconenb);
         addSetting(useThemeColor);
         addSetting(textColor.setVisibility(() -> !useThemeColor.getValue()));
@@ -75,39 +77,49 @@ public class ModuleList extends Module {
         List<Module> displayModules = moduleProgressMap.keySet().stream()
                 .sorted(Comparator.comparingDouble((Module m) -> getWidth(m, textFont, iconFont)).reversed())
                 .toList();
+        if (displayModules.isEmpty()) return;
 
-        float yOffset = (float) getY();
         float xOffset = (float) getX();
-        float screenWidth = (float) client.getWindow().getScreenWidth();
+        float yOffset = (float) getY();
 
-        int color;
+        float maxWidth = 0f;
+        for (Module m : displayModules) {
+            float w = getWidth(m, textFont, iconFont);
+            if (w > maxWidth) maxWidth = w;
+        }
+        float panelWidth = maxWidth + PADDING * 2;
+        float panelHeight = MODULE_HEIGHT * displayModules.size() + SPACING * (displayModules.size() - 1) + PADDING * 2;
+
+        int accentColor;
         if (useThemeColor.getValue()) {
-            color = ClickGuiModule.getThemeColor();
+            accentColor = ClickGuiModule.getThemeColor();
         } else {
-            color = textColor.getValue();
+            accentColor = textColor.getValue();
         }
 
+        float currentY = yOffset + PADDING;
         for (Module m : displayModules) {
-            float current = moduleProgressMap.getOrDefault(m, 0.0f);
-            if (current <= 0.0f) continue;
+            float progress = moduleProgressMap.getOrDefault(m, 0f);
+            if (progress <= 0f) continue;
 
-            float width = getWidth(m, textFont, iconFont);
-            float height = 22;
-            float x = xOffset;
-            float y = yOffset;
+            float moduleX = xOffset + PADDING;
+            float moduleY = currentY;
+            float moduleWidth = maxWidth;
+            float moduleHeight = MODULE_HEIGHT;
 
             canvas.save();
-            canvas.translate(x, y);
-            canvas.scale(current, current);
+            canvas.translate(moduleX, moduleY);
+            canvas.scale(progress, progress);
 
-            try (Paint bgPaint = new Paint().setColor(0x801A1A1A);
-                 Paint textPaint = new Paint().setColor(color);
-                 Paint accentPaint = new Paint().setColor(color)) {
-                canvas.drawRRect(RRect.makeXYWH(0, 0, width, height, 4), bgPaint);
-                canvas.drawRect(Rect.makeXYWH(0, 0, 3, height), accentPaint);
+            try (Paint accentPaint = new Paint().setColor(accentColor)) {
+                float accentHeight = moduleHeight - 6f;
+                float accentY = (moduleHeight - accentHeight) / 2f;
+                canvas.drawRRect(RRect.makeXYWH(ACCENT_OFFSET, accentY, ACCENT_WIDTH, accentHeight, 2f), accentPaint);
+            }
 
-                float textX = 8;
-                float textY = height / 2f + textFont.getMetrics().getCapHeight() / 2f - 2;
+            try (Paint textPaint = new Paint().setColor(0xFFFFFFFF)) {
+                float textX = ACCENT_OFFSET + ACCENT_WIDTH + 6f;
+                float textY = moduleHeight / 2f + textFont.getMetrics().getCapHeight() / 2f - 2f;
 
                 if (iconenb.getValue()) {
                     String icon = m.getCategory().getIcon();
@@ -119,14 +131,16 @@ public class ModuleList extends Module {
             }
 
             canvas.restore();
-            yOffset += height + 2;
+
+            currentY += moduleHeight + SPACING;
         }
     }
 
     private float getWidth(Module m, Font textFont, Font iconFont) {
         try (TextLine nameLine = TextLine.make(m.getName(), textFont);
              TextLine iconLine = TextLine.make(m.getCategory().getIcon(), iconFont)) {
-            return nameLine.getWidth() + (iconenb.getValue() ? iconLine.getWidth() + 16 : 10);
+            float base = nameLine.getWidth() + (iconenb.getValue() ? iconLine.getWidth() + 6 : 0);
+            return base + ACCENT_OFFSET + ACCENT_WIDTH + 6;
         }
     }
 }

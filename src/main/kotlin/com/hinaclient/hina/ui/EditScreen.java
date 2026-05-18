@@ -32,8 +32,8 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class EditScreen extends Screen {
     private final List<Module> draggableModules;
@@ -42,16 +42,30 @@ public class EditScreen extends Screen {
 
     public EditScreen() {
         super(Component.literal("EditScreen"));
-        this.draggableModules = HinaClient.getINSTANCE().moduleManager.getModules().stream()
-                .filter(this::hasSkiaRender)
-                .collect(Collectors.toList());
+        this.draggableModules = new ArrayList<>();
+        List<Module> allModules = HinaClient.getINSTANCE().moduleManager.getModules();
+        float defaultX = 50;
+        float defaultY = 50;
+        float stepX = 110;
+        float stepY = 40;
+        int index = 0;
+        for (Module module : allModules) {
+            if (hasSkiaRender(module)) {
+                if (module.getX() == 0 && module.getY() == 0) {
+                    module.setX(defaultX + (index % 5) * stepX);
+                    module.setY(defaultY + ((double) index / 5) * stepY);
+                }
+                draggableModules.add(module);
+                index++;
+            }
+        }
     }
 
     private boolean hasSkiaRender(Module module) {
         for (Method method : module.getClass().getDeclaredMethods()) {
             if (method.isAnnotationPresent(EventListener.class)) {
                 Class<?>[] params = method.getParameterTypes();
-                if (params.length == 1 && params[0].getCanonicalName().contains("EventSkiaDrawScene")) {
+                if (params.length == 1 && params[0].equals(EventSkiaDrawScene.class)) {
                     return true;
                 }
             }
@@ -113,9 +127,7 @@ public class EditScreen extends Screen {
 
     @Override
     public boolean mouseReleased(@NotNull MouseButtonEvent event) {
-        if (event.button() == 0) {
-            draggingModule = null;
-        }
+        draggingModule = null;
         return super.mouseReleased(event);
     }
 

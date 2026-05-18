@@ -15,15 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+package com.hinaclient.hina.event.mod;
 
-package com.hinaclient.hina.module.impl.render;
-
-import com.hinaclient.hina.module.Category;
-import com.hinaclient.hina.module.Module;
-import com.hinaclient.hina.setting.NumberSetting;
-
-public class FullbrightModule extends Module {
-    public FullbrightModule() {
-        super("Fullbright", Category.RENDER);
-    }
+public class ModStatsEvent {
 }

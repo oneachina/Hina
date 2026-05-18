@@ -30,10 +30,6 @@ import io.github.humbleui.types.Rect;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Eatgrapes, oneachina
- * @link github.com/Eatgrapes
- */
 public class ModuleButton {
     private final Module module;
     private final float width;
@@ -42,12 +38,11 @@ public class ModuleButton {
     private boolean extended = false;
     private float enableProgress = 0f;
     private float extensionProgress = 0f;
-    private final float SETTING_HEIGHT = 26; 
+    private final float SETTING_HEIGHT = 26;
     private final float COLOR_HEIGHT = 100;
 
     public ModuleButton(Module module, float width, float height) {
         this.module = module;
-        // this.enableProgress = module.isEnabled() ? 1.0f : 0.0f;
         this.width = width;
         this.height = height;
         for (Setting<?> setting : module.getSettings()) {
@@ -56,22 +51,29 @@ public class ModuleButton {
             else if (setting instanceof ModeSetting) components.add(new ModeComponent((ModeSetting) setting, width, SETTING_HEIGHT));
             else if (setting instanceof ColorSetting) components.add(new ColorComponent((ColorSetting) setting, width, COLOR_HEIGHT));
         }
-
         components.add(new BindComponent(module, new BindSetting("Bind", module.getKey()), width, SETTING_HEIGHT));
     }
 
-    public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
+    public void update() {
         float target = module.isEnabled() ? 1.0f : 0.0f;
         enableProgress += (target - enableProgress) * 0.2f;
+        if (Math.abs(target - enableProgress) < 0.001f) enableProgress = target;
+
         float extTarget = extended ? 1.0f : 0.0f;
         extensionProgress += (extTarget - extensionProgress) * 0.2f;
+        if (Math.abs(extTarget - extensionProgress) < 0.001f) extensionProgress = extTarget;
+
+        for (Component comp : components) {
+            comp.update();
+        }
+    }
+
+    public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
         if (enableProgress > 0.01f) {
             try (Paint fill = new Paint()) {
                 fill.setMode(PaintMode.FILL);
-
                 int themeColor = ClickGuiModule.getThemeColor();
                 fill.setColor(themeColor);
-
                 float centerX = x + width / 2;
                 float currentWidth = width * enableProgress;
                 canvas.drawRect(Rect.makeXYWH(centerX - currentWidth / 2, y, currentWidth, height), fill);
@@ -88,7 +90,7 @@ public class ModuleButton {
             float yOffset = y + height;
             canvas.save();
             float totalSettingsHeight = 0;
-            for(Component c : components) totalSettingsHeight += c.getHeight();
+            for (Component c : components) totalSettingsHeight += c.getHeight();
             canvas.clipRect(Rect.makeXYWH(x, y + height, width, totalSettingsHeight * extensionProgress));
             for (Component comp : components) {
                 comp.render(canvas, x, yOffset, mouseX, mouseY);
@@ -97,17 +99,17 @@ public class ModuleButton {
             canvas.restore();
         }
     }
-    
+
     public float getTotalHeight() {
         float h = height;
         if (extensionProgress > 0.01f) {
-             float settingsHeight = 0;
-             for (Component comp : components) settingsHeight += comp.getHeight();
-             h = height + settingsHeight * extensionProgress;
+            float settingsHeight = 0;
+            for (Component comp : components) settingsHeight += comp.getHeight();
+            h = height + settingsHeight * extensionProgress;
         }
         return h;
     }
-    
+
     public boolean mouseClicked(double mouseX, double mouseY, int button, float x, float y) {
         if (isHovered(mouseX, mouseY, x, y, width, height)) {
             if (button == 0) {
@@ -127,7 +129,7 @@ public class ModuleButton {
         }
         return false;
     }
-    
+
     public boolean mouseReleased(double mouseX, double mouseY, int button, float x, float y) {
         if (extended) {
             float yOffset = y + height;
@@ -137,10 +139,6 @@ public class ModuleButton {
             }
         }
         return false;
-    }
-    
-    private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
-        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
 
     public boolean handleKeyPress(int keyCode) {
@@ -152,5 +150,9 @@ public class ModuleButton {
             }
         }
         return false;
+    }
+
+    private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
+        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
 }

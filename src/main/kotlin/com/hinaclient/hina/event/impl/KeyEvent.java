@@ -16,20 +16,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.mixin;
+package com.hinaclient.hina.event.impl;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import com.hinaclient.hina.event.Event;
 
 /**
  * @Author: oneachina
- * @Date: 2026/2/2 22:38
+ * @Date: 2026/2/1 12:38
  */
-@Mixin(targets = "com.mojang.blaze3d.opengl.GlStateManager$BlendState")
-public interface BlendStateAccessor {
-    @Accessor("srcRgb") @Mutable void setSrcRgb(int val);
-    @Accessor("dstRgb") @Mutable void setDstRgb(int val);
-    @Accessor("srcAlpha") @Mutable void setSrcAlpha(int val);
-    @Accessor("dstAlpha") @Mutable void setDstAlpha(int val);
+public class KeyEvent extends Event {
+    private final int key;
+
+    public KeyEvent(int key) {
+        this.key = key;
+    }
+
+    public int getKey() {
+        return key;
+    }
 }

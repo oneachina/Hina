@@ -16,22 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.event.mod;
+package com.hinaclient.hina.mixin.mixins.accessors;
 
-import com.hinaclient.hina.event.Event;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
 /**
  * @Author: oneachina
- * @Date: 2026/2/1 12:38
+ * @Date: 2026/2/2 13:37
  */
-public class KeyEvent extends Event {
-    private final int key;
-
-    public KeyEvent(int key) {
-        this.key = key;
-    }
-
-    public int getKey() {
-        return key;
-    }
+@Mixin(ServerboundMovePlayerPacket.class)
+public interface ServerboundMovePlayerPacketAccessor {
+    @Accessor("onGround")
+    @Mutable
+    void setOnGround(boolean onGround);
 }

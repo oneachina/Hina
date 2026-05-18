@@ -95,10 +95,15 @@ public class ConfigManager {
                             for (Setting<?> setting : module.getSettings()) {
                                 if (settingsJson.has(setting.getName())) {
                                     JsonElement val = settingsJson.get(setting.getName());
-                                    if (setting instanceof BooleanSetting) ((BooleanSetting) setting).setValue(val.getAsBoolean());
-                                    else if (setting instanceof NumberSetting) ((NumberSetting) setting).setValue(val.getAsDouble());
-                                    else if (setting instanceof ModeSetting) ((ModeSetting) setting).setValue(val.getAsString());
-                                    else if (setting instanceof ColorSetting) ((ColorSetting) setting).setValue(val.getAsInt());
+                                    switch (setting) {
+                                        case BooleanSetting booleanSetting ->
+                                                booleanSetting.setValue(val.getAsBoolean());
+                                        case NumberSetting numberSetting -> numberSetting.setValue(val.getAsDouble());
+                                        case ModeSetting modeSetting -> modeSetting.setValue(val.getAsString());
+                                        case ColorSetting colorSetting -> colorSetting.setValue(val.getAsInt());
+                                        default -> {
+                                        }
+                                    }
                                 }
                             }
                         }

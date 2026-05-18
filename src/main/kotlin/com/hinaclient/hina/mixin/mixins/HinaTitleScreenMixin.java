@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package com.hinaclient.hina.mixin;
+package com.hinaclient.hina.mixin.mixins;
 
 import com.hinaclient.hina.ui.HinaTitleScreen;
 import com.hinaclient.hina.ui.LoginScreen;

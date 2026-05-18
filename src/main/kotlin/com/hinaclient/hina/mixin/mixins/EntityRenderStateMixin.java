@@ -15,28 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+package com.hinaclient.hina.mixin.mixins;
 
-package com.hinaclient.hina.mixin;
-
-import net.minecraft.network.Connection;
-import net.minecraft.network.PacketListener;
-import net.minecraft.network.protocol.Packet;
-import io.netty.channel.ChannelFutureListener;
+import com.hinaclient.hina.mixin.utils.EntityRenderStateAccessor;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Invoker;
-import org.jspecify.annotations.Nullable;
+import org.spongepowered.asm.mixin.Unique;
 
-/**
- * @Author: oneachina
- * @Date: 2026/2/5 13:22
- */
-@Mixin(Connection.class)
-public interface ConnectionAccessor {
-    @Invoker("sendPacket")
-    void invokeSendPacket(Packet<?> packet, @Nullable ChannelFutureListener listener, boolean flush);
+@Mixin(EntityRenderState.class)
+public abstract class EntityRenderStateMixin implements EntityRenderStateAccessor {
+    @Unique
+    private Entity hina$entity;
 
-    @Invoker("genericsFtw")
-    static <T extends PacketListener> void genericsFtw(Packet<T> packet, PacketListener listener) {
-        throw new UnsupportedOperationException();
+    @Override @Unique
+    public Entity hina$getEntity() {
+        return hina$entity;
+    }
+
+    @Override @Unique
+    public void hina$setEntity(@Nullable Entity hina$entity) {
+        this.hina$entity = hina$entity;
     }
 }

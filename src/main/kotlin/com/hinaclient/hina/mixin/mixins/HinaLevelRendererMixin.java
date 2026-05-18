@@ -15,28 +15,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package com.hinaclient.hina.mixin;
+
+package com.hinaclient.hina.mixin.mixins;
 
 import com.hinaclient.hina.event.EventBus;
-import com.hinaclient.hina.event.impl.AttackEvent;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
+import com.hinaclient.hina.event.impl.Render3DEvent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.state.LevelRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(MultiPlayerGameMode.class)
-public class MixinMultiPlayerGameMode {
-
-    @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
-    private void onAttack(Player player, Entity target, CallbackInfo ci) {
-        AttackEvent event = new AttackEvent(player, target);
-        EventBus.INSTANCE.post(event);
-
-        if (event.isCancelled()) {
-            ci.cancel();
-        }
+/**
+ * @author Eatgrapes, oneachina
+ * @link github.com/Eatgrapes
+ */
+@Mixin(LevelRenderer.class)
+public class HinaLevelRendererMixin {
+    @Inject(method = "renderBlockOutline", at = @At("HEAD"))
+    private void renderBlockOutline(MultiBufferSource.BufferSource bufferSource, PoseStack poseStack, boolean bl, LevelRenderState levelRenderState, CallbackInfo ci) {
+        EventBus.INSTANCE.post(new Render3DEvent(
+                Minecraft.getInstance().getDeltaTracker(),
+                poseStack,
+                poseStack.last().pose(),
+                bufferSource)
+        );
     }
 }

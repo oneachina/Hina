@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm") version "2.3.20-Beta2"
     id("fabric-loom") version "1.15-SNAPSHOT"
@@ -52,6 +54,9 @@ dependencies {
     implementation("io.github.humbleui:skija-windows-x64:$skijaVersion")
     include("io.github.humbleui:skija-windows-x64:$skijaVersion")
 
+    implementation("io.github.humbleui:skija-shared:$skijaVersion")
+    include("io.github.humbleui:skija-shared:$skijaVersion")
+
     implementation("io.github.humbleui:types:0.2.0")
     include("io.github.humbleui:types:0.2.0")
 }
@@ -66,6 +71,12 @@ tasks.processResources {
 
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(21)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
 }
 
 java {

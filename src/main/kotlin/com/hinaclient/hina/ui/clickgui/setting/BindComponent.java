@@ -26,10 +26,6 @@ import io.github.humbleui.skija.Paint;
 import io.github.humbleui.types.Rect;
 import org.lwjgl.glfw.GLFW;
 
-/**
- * @Author: oneachina
- * @Date: 2026/2/2 13:51
- */
 public class BindComponent extends Component {
     private final Module module;
     private boolean listening;
@@ -91,8 +87,4 @@ public class BindComponent extends Component {
         return false;
     }
 
-    @Override
-    public float getHeight() {
-        return height;
-    }
 }

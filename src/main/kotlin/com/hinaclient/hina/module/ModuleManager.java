@@ -20,16 +20,11 @@ package com.hinaclient.hina.module;
 
 import com.hinaclient.hina.event.EventListener;
 import com.hinaclient.hina.event.EventBus;
-import com.hinaclient.hina.event.mod.KeyEvent;
-import com.hinaclient.hina.module.impl.combat.AutoTotem;
-import com.hinaclient.hina.module.impl.combat.KnockbackRedirect;
-import com.hinaclient.hina.module.impl.combat.LegitAura;
-import com.hinaclient.hina.module.impl.combat.SafeAnchor;
-import com.hinaclient.hina.module.impl.misc.Disabled;
-import com.hinaclient.hina.module.impl.movement.Flight;
-import com.hinaclient.hina.module.impl.movement.Velocity;
-import com.hinaclient.hina.module.impl.player.FastPlace;
-import com.hinaclient.hina.module.impl.player.NoFall;
+import com.hinaclient.hina.event.impl.KeyEvent;
+import com.hinaclient.hina.module.impl.combat.*;
+import com.hinaclient.hina.module.impl.misc.*;
+import com.hinaclient.hina.module.impl.movement.*;
+import com.hinaclient.hina.module.impl.player.*;
 import com.hinaclient.hina.module.impl.render.*;
 
 import java.util.ArrayList;
@@ -46,7 +41,7 @@ public class ModuleManager {
         modules.add(clickGuiModule);
 
         modules.add(new Flight());
-        modules.add(new ESPModule());
+        modules.add(new ChamsModule());
         modules.add(new FullbrightModule());
         modules.add(new NoFall());
         modules.add(new Velocity());
@@ -58,6 +53,12 @@ public class ModuleManager {
         modules.add(new LegitAura());
         modules.add(new KnockbackRedirect());
         modules.add(new AutoTotem());
+        modules.add(new InvMove());
+        modules.add(new LegitCrystal());
+        modules.add(new AutoLunge());
+        modules.add(new AutoSoup());
+        modules.add(new AutoPlay());
+        modules.add(new MacePlus());
     }
 
     @EventListener

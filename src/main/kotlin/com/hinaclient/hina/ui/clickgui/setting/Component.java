@@ -25,7 +25,7 @@ public abstract class Component {
     protected final Setting<?> setting;
     protected float width;
     protected float height;
-    private float visProgress = 0f;
+    protected float visProgress;
 
     public Component(Setting<?> setting, float width, float height) {
         this.setting = setting;
@@ -36,6 +36,16 @@ public abstract class Component {
 
     public Setting<?> getSetting() {
         return setting;
+    }
+
+    public void update() {
+        float target = setting.isVisible() ? 1f : 0f;
+        float diff = target - visProgress;
+        if (Math.abs(diff) < 0.001f) {
+            visProgress = target;
+        } else {
+            visProgress += diff * 0.2f;
+        }
     }
 
     public abstract void render(Canvas canvas, float x, float y, int mouseX, int mouseY);
@@ -49,16 +59,14 @@ public abstract class Component {
     }
 
     public float getHeight() {
-        float target = setting.isVisible() ? 1f : 0f;
-        visProgress += (target - visProgress) * 0.1f;
         return height * visProgress;
-    }
-
-    public float getVisProgress() {
-        return visProgress;
     }
 
     protected boolean isHovered(double mouseX, double mouseY, float x, float y) {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+    }
+
+    protected boolean isHovered(double mouseX, double mouseY, float x, float y, float w, float h) {
+        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
     }
 }

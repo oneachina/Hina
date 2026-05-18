@@ -15,15 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+package com.hinaclient.hina.utils;
 
-package com.hinaclient.hina.module.impl.render;
+import com.hinaclient.hina.mixin.mixins.accessors.ConnectionAccessor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
 
-import com.hinaclient.hina.module.Category;
-import com.hinaclient.hina.module.Module;
-import com.hinaclient.hina.setting.NumberSetting;
+public class PacketUtil {
+    private static final Minecraft mc = Minecraft.getInstance();
 
-public class FullbrightModule extends Module {
-    public FullbrightModule() {
-        super("Fullbright", Category.RENDER);
+    public static void sendNoEvent(Packet<?> packet) {
+        Connection connection = mc.getConnection() != null ? mc.getConnection().getConnection() : null;
+        if (connection != null) {
+            ((ConnectionAccessor) connection).invokeSendPacket(packet, null, true);
+        }
     }
 }

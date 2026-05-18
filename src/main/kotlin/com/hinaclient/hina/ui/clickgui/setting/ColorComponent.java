@@ -27,23 +27,19 @@ import io.github.humbleui.skija.Shader;
 import io.github.humbleui.types.Rect;
 import java.awt.Color;
 
-/**
- * @author Eatgrapes
- * @link github.com/Eatgrapes
- */
 public class ColorComponent extends Component {
     private final ColorSetting colorSetting;
     private float currentX, currentY;
     private boolean draggingHue;
     private boolean draggingSatVal;
     private float hue, saturation, brightness;
-    
+
     public ColorComponent(ColorSetting setting, float width, float height) {
         super(setting, width, height);
         this.colorSetting = setting;
         updateHSB();
     }
-    
+
     private void updateHSB() {
         Color c = new Color(colorSetting.getColor());
         float[] hsb = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
@@ -51,7 +47,7 @@ public class ColorComponent extends Component {
         saturation = hsb[1];
         brightness = hsb[2];
     }
-    
+
     private void updateColor() {
         colorSetting.setValue(Color.HSBtoRGB(hue, saturation, brightness));
     }
@@ -61,6 +57,11 @@ public class ColorComponent extends Component {
         if (!setting.isVisible()) return;
         this.currentX = x;
         this.currentY = y;
+
+        if (!draggingHue && !draggingSatVal) {
+            updateHSB();
+        }
+
         float padding = 8;
         float contentWidth = width - padding * 2;
         float hueHeight = 12;
@@ -69,19 +70,19 @@ public class ColorComponent extends Component {
         float pickerY = y + 20;
         float hueX = x + padding;
         float hueY = pickerY + pickerHeight + padding;
+
         if (draggingHue) {
             float diff = mouseX - hueX;
-            hue = Math.min(1f, Math.max(0f, diff / contentWidth));
+            hue = Math.clamp(diff / contentWidth, 0f, 1f);
             updateColor();
         } else if (draggingSatVal) {
             float diffX = mouseX - pickerX;
             float diffY = mouseY - pickerY;
-            saturation = Math.min(1f, Math.max(0f, diffX / contentWidth));
-            brightness = 1f - Math.min(1f, Math.max(0f, diffY / pickerHeight));
+            saturation = Math.clamp(diffX / contentWidth, 0f, 1f);
+            brightness = 1f - Math.clamp(diffY / pickerHeight, 0f, 1f);
             updateColor();
-        } else {
-             updateHSB();
         }
+
         try (Paint paint = new Paint()) {
             paint.setColor(0xCC1A1A1A);
             canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
@@ -126,7 +127,7 @@ public class ColorComponent extends Component {
             canvas.drawRect(Rect.makeXYWH(hueX + hue * contentWidth - 1, hueY - 1, 2, hueHeight + 2), p);
         }
     }
-    
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!setting.isVisible()) return false;
@@ -150,7 +151,7 @@ public class ColorComponent extends Component {
         }
         return false;
     }
-    
+
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) {

@@ -38,12 +38,25 @@ public class ModeComponent extends Component {
     }
 
     @Override
+    public void update() {
+        if (!setting.isVisible()) {
+            dropdownProgress = 0f;
+        } else {
+            float target = (expanded && modeSetting.isMulti()) ? 1f : 0f;
+            float diff = target - dropdownProgress;
+            if (Math.abs(diff) < 0.001f) {
+                dropdownProgress = target;
+            } else {
+                dropdownProgress += diff * 0.2f;
+            }
+        }
+        super.update();
+    }
+
+    @Override
     public float getHeight() {
         float baseHeight = super.getHeight();
-        if (!setting.isVisible()) return 0;
-
-        float target = (expanded && modeSetting.isMulti()) ? 1f : 0f;
-        dropdownProgress += (target - dropdownProgress) * 0.2f;
+        if (!setting.isVisible() || baseHeight < 0.01f) return 0;
 
         if (modeSetting.isMulti() && dropdownProgress > 0.01f) {
             float listHeight = modeSetting.getModes().size() * OPTION_HEIGHT;
@@ -58,14 +71,15 @@ public class ModeComponent extends Component {
         this.currentX = x;
         this.currentY = y;
 
+        float baseHeight = height;
         try (Paint paint = new Paint()) {
             paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
+            canvas.drawRect(Rect.makeXYWH(x, y, width, baseHeight), paint);
         }
 
         try (Paint textPaint = new Paint()) {
             io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(14);
-            float textY = y + height / 2 + 4;
+            float textY = y + baseHeight / 2 + 4;
 
             textPaint.setColor(0xFFAAAAAA);
             canvas.drawString(setting.getName() + ":", x + 6, textY, font, textPaint);
@@ -85,7 +99,7 @@ public class ModeComponent extends Component {
         }
 
         if (modeSetting.isMulti() && dropdownProgress > 0.01f) {
-            float optionY = y + height;
+            float optionY = y + baseHeight;
             canvas.save();
             float totalListHeight = modeSetting.getModes().size() * OPTION_HEIGHT;
             canvas.clipRect(Rect.makeXYWH(x, optionY, width, totalListHeight * dropdownProgress));
@@ -127,9 +141,5 @@ public class ModeComponent extends Component {
             }
         }
         return false;
-    }
-
-    private boolean isHovered(double mouseX, double mouseY, float x, float y, float w, float h) {
-        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
     }
 }

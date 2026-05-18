@@ -16,11 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.mixin;
+package com.hinaclient.hina.mixin.mixins;
 
 import com.hinaclient.hina.event.EventBus;
 import com.hinaclient.hina.event.impl.packet.PacketEvent;
 import com.hinaclient.hina.event.impl.packet.PacketType;
+import com.hinaclient.hina.mixin.mixins.accessors.ConnectionAccessor;
 import io.netty.channel.ChannelFutureListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;

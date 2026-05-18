@@ -15,21 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+package com.hinaclient.hina.mixin.mixins.accessors.render;
 
-package com.hinaclient.hina.mixin;
-
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import org.jspecify.annotations.NullMarked;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-/**
- * @Author: oneachina
- * @Date: 2026/2/2 13:37
- */
-@Mixin(ServerboundMovePlayerPacket.class)
-public interface ServerboundMovePlayerPacketAccessor {
-    @Accessor("onGround")
-    @Mutable
-    void setOnGround(boolean onGround);
+@NullMarked
+@Mixin(RenderType.class)
+public interface RenderTypeAccessor {
+    @Accessor
+    String getName();
+
+    @Accessor
+    RenderSetup getState();
+
 }

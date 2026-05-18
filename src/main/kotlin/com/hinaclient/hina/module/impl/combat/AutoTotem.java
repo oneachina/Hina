@@ -29,8 +29,14 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class AutoTotem extends Module {
     private final BooleanSetting inventory = new BooleanSetting("Inventory", true);
+    private int cooldown = 0;
+    private int stage = 0;
+    private int totemSlot = -1;
+    private boolean wasSprinting = false;
 
     public AutoTotem() {
         super("AutoTotem", Category.COMBAT);
@@ -41,25 +47,49 @@ public class AutoTotem extends Module {
     public void onTick(ClientTickEvent event) {
         if (client.player == null || client.gameMode == null) return;
 
-        if (client.player.getOffhandItem().getItem() == Items.TOTEM_OF_UNDYING) return;
+        if (cooldown > 0) {
+            cooldown--;
+            return;
+        }
 
-        int totemSlot = findTotemSlot();
+        if (client.player.getOffhandItem().getItem() == Items.TOTEM_OF_UNDYING) {
+            stage = 0;
+            return;
+        }
 
-        if (totemSlot != -1) {
-            boolean wasSprinting = client.player.isSprinting();
-
-            if (wasSprinting) {
-                client.player.connection.send(new ServerboundPlayerCommandPacket(client.player, ServerboundPlayerCommandPacket.Action.STOP_SPRINTING));
+        switch (stage) {
+            case 0 -> {
+                totemSlot = findTotemSlot();
+                if (totemSlot == -1) return;
+                stage = 1;
+                cooldown = ThreadLocalRandom.current().nextInt(2, 5);
             }
-
-            client.player.connection.send(new ServerboundPlayerInputPacket(Input.EMPTY));
-
-            client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, totemSlot, 0, ClickType.PICKUP, client.player);
-            client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, 45, 0, ClickType.PICKUP, client.player);
-            client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, totemSlot, 0, ClickType.PICKUP, client.player);
-
-            if (wasSprinting) {
-                client.player.connection.send(new ServerboundPlayerCommandPacket(client.player, ServerboundPlayerCommandPacket.Action.START_SPRINTING));
+            case 1 -> {
+                wasSprinting = client.player.isSprinting();
+                if (wasSprinting) {
+                    client.player.connection.send(new ServerboundPlayerCommandPacket(client.player, ServerboundPlayerCommandPacket.Action.STOP_SPRINTING));
+                }
+                client.player.connection.send(new ServerboundPlayerInputPacket(Input.EMPTY));
+                stage = 2;
+                cooldown = 0;
+            }
+            case 2 -> {
+                int offhandSlot = 45;
+                client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, totemSlot, 0, ClickType.PICKUP, client.player);
+                client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, offhandSlot, 0, ClickType.PICKUP, client.player);
+                ItemStack offhandItem = client.player.getOffhandItem();
+                if (!offhandItem.isEmpty() && offhandItem.getItem() != Items.TOTEM_OF_UNDYING) {
+                    client.gameMode.handleInventoryMouseClick(client.player.containerMenu.containerId, totemSlot, 0, ClickType.PICKUP, client.player);
+                }
+                stage = 3;
+                cooldown = ThreadLocalRandom.current().nextInt(1, 3);
+            }
+            case 3 -> {
+                if (wasSprinting) {
+                    client.player.connection.send(new ServerboundPlayerCommandPacket(client.player, ServerboundPlayerCommandPacket.Action.START_SPRINTING));
+                }
+                stage = 0;
+                cooldown = ThreadLocalRandom.current().nextInt(5, 10);
             }
         }
     }

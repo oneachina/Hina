@@ -39,7 +39,7 @@ import java.util.List;
 public class ClickGuiScreen extends Screen {
     private final List<Panel> panels = new ArrayList<>();
     private float openAnimationProgress = 0f;
-    private final boolean closing = false;
+    private boolean closing = false;
     private final float GUI_SCALE = 1.2f;
 
     private int lastMouseX;
@@ -69,7 +69,12 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public void onClose() {
+        if (!closing) {
+            closing = true;
+            return;
+        }
         EventBus.INSTANCE.unregister(this);
+        resetAllDrags();
         super.onClose();
     }
 
@@ -77,6 +82,7 @@ public class ClickGuiScreen extends Screen {
     public void render(@NotNull GuiGraphics context, int mouseX, int mouseY, float delta) {
         float target = closing ? 0f : 1f;
         openAnimationProgress += (target - openAnimationProgress) * 0.15f;
+        if (Math.abs(target - openAnimationProgress) < 0.001f) openAnimationProgress = target;
 
         if (closing && openAnimationProgress < 0.015f) {
             openAnimationProgress = 0f;
@@ -96,8 +102,10 @@ public class ClickGuiScreen extends Screen {
             if (panel.handleKeyPress(keyCode)) return true;
         }
 
-        if (keyEvent.isEscape() || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
-            this.onClose();
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
+            if (!closing) {
+                closing = true;
+            }
             return true;
         }
 
@@ -143,7 +151,7 @@ public class ClickGuiScreen extends Screen {
 
         return super.mouseReleased(mouseButtonEvent);
     }
-    
+
     @Override
     public boolean isPauseScreen() {
         return false;
@@ -201,5 +209,11 @@ public class ClickGuiScreen extends Screen {
         }
 
         canvas.restore();
+    }
+
+    private void resetAllDrags() {
+        for (Panel panel : panels) {
+            panel.resetDrag();
+        }
     }
 }

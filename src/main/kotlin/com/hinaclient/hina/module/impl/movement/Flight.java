@@ -43,7 +43,6 @@ public class Flight extends Module {
 
     public Flight() {
         super("Flight", Category.MOVEMENT);
-        this.setKey(GLFW.GLFW_KEY_G);
 
         addSetting(mode);
         addSetting(vSpeed);

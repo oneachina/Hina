@@ -15,15 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+package com.hinaclient.hina.mixin.mixins.accessors.render;
 
-package com.hinaclient.hina.module.impl.render;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import org.jspecify.annotations.NullMarked;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
-import com.hinaclient.hina.module.Category;
-import com.hinaclient.hina.module.Module;
-import com.hinaclient.hina.setting.NumberSetting;
+@NullMarked
+@Mixin(RenderSetup.class)
+public interface RenderSetupAccessor {
+    @Accessor
+    RenderSetup.OutlineProperty getOutlineProperty();
 
-public class FullbrightModule extends Module {
-    public FullbrightModule() {
-        super("Fullbright", Category.RENDER);
-    }
 }

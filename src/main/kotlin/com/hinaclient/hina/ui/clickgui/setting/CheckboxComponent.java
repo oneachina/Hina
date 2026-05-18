@@ -26,18 +26,26 @@ import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
 import com.hinaclient.hina.module.impl.render.ClickGuiModule;
 
-/**
- * @author Eatgrapes
- * @link github.com/Eatgrapes
- */
 public class CheckboxComponent extends Component {
     private final BooleanSetting boolSetting;
     private float currentX, currentY;
     private float animationProgress = 0f;
-    
+
     public CheckboxComponent(BooleanSetting setting, float width, float height) {
         super(setting, width, height);
         this.boolSetting = setting;
+    }
+
+    @Override
+    public void update() {
+        float target = boolSetting.getValue() ? 1.0f : 0.0f;
+        float diff = target - animationProgress;
+        if (Math.abs(diff) < 0.001f) {
+            animationProgress = target;
+        } else {
+            animationProgress += diff * 0.2f;
+        }
+        super.update();
     }
 
     @Override
@@ -45,8 +53,7 @@ public class CheckboxComponent extends Component {
         if (!setting.isVisible()) return;
         this.currentX = x;
         this.currentY = y;
-        float target = boolSetting.getValue() ? 1.0f : 0.0f;
-        animationProgress += (target - animationProgress) * 0.2f;
+
         try (Paint paint = new Paint()) {
             paint.setColor(0xCC1A1A1A);
             canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
@@ -74,7 +81,7 @@ public class CheckboxComponent extends Component {
             canvas.drawOval(Rect.makeXYWH(knobX, knobY, knobSize, knobSize), paint);
         }
     }
-    
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!setting.isVisible()) return false;

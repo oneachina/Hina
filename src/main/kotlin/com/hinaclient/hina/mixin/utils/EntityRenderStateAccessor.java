@@ -15,15 +15,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+package com.hinaclient.hina.mixin.utils;
 
-package com.hinaclient.hina.module.impl.render;
+import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
-import com.hinaclient.hina.module.Category;
-import com.hinaclient.hina.module.Module;
-import com.hinaclient.hina.setting.NumberSetting;
+@NullMarked
+public interface EntityRenderStateAccessor {
+    void hina$setEntity(Entity entity);
+    @Nullable
+    Entity hina$getEntity();
 
-public class FullbrightModule extends Module {
-    public FullbrightModule() {
-        super("Fullbright", Category.RENDER);
-    }
+    boolean hina$isCustom();
+    void hina$setCustom(boolean custom);
 }
