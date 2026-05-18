@@ -103,9 +103,7 @@ public class MacePlus extends Module {
     }
 
     private boolean hasShield(LivingEntity entity) {
-        if (entity.isBlocking()) return true;
-        return entity.getMainHandItem().getItem() == Items.SHIELD
-            || entity.getOffhandItem().getItem() == Items.SHIELD;
+        return entity.isBlocking();
     }
 
     private int findAxeSlot() {
