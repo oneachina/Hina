@@ -1,10 +1,4 @@
 # Hina Client
-<p align="center"> 
-    <img src="https://img.shields.io/github/license/oneachina/Hina?style=flat-square" alt="License"> 
-    <img src="https://img.shields.io/github/stars/oneachina/Hina?style=flat-square" alt="Stars"> 
-    <img src="https://img.shields.io/badge/Fabric-Mod-blue?style=flat-square" alt="Minecraft"> 
-</p>
-
 Hina Client is a free and open-source mixin-based injection hacked client for Minecraft.
 
 ## Issues
