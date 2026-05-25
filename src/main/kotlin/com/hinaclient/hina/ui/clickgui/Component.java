@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.hinaclient.hina.ui.clickgui.setting;
+package com.hinaclient.hina.ui.clickgui;
 
 import com.hinaclient.hina.setting.Setting;
 import io.github.humbleui.skija.Canvas;
@@ -31,7 +31,11 @@ public abstract class Component {
         this.setting = setting;
         this.width = width;
         this.height = height;
-        this.visProgress = setting.isVisible() ? 1f : 0f;
+        if (setting != null) {
+            this.visProgress = setting.isVisible() ? 1f : 0f;
+        } else {
+            this.visProgress = 1f;
+        }
     }
 
     public Setting<?> getSetting() {
@@ -39,12 +43,14 @@ public abstract class Component {
     }
 
     public void update() {
-        float target = setting.isVisible() ? 1f : 0f;
-        float diff = target - visProgress;
-        if (Math.abs(diff) < 0.001f) {
-            visProgress = target;
-        } else {
-            visProgress += diff * 0.2f;
+        if (setting != null) {
+            float target = setting.isVisible() ? 1f : 0f;
+            float diff = target - visProgress;
+            if (Math.abs(diff) < 0.001f) {
+                visProgress = target;
+            } else {
+                visProgress += diff * 0.2f;
+            }
         }
     }
 
@@ -62,11 +68,11 @@ public abstract class Component {
         return height * visProgress;
     }
 
-    protected boolean isHovered(double mouseX, double mouseY, float x, float y) {
-        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+    protected boolean isHovered(double mx, double my, float x, float y) {
+        return mx >= x && mx <= x + width && my >= y && my <= y + height;
     }
 
-    protected boolean isHovered(double mouseX, double mouseY, float x, float y, float w, float h) {
-        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+    protected boolean isHovered(double mx, double my, float x, float y, float w, float h) {
+        return mx >= x && mx <= x + w && my >= y && my <= y + h;
     }
 }
