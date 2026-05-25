@@ -1,0 +1,41 @@
+uniform shader uBackground;
+uniform float uTime;
+uniform float4 uRect;
+uniform float4 uShape;
+
+float roundedRectSDF(float x, float y, float w, float h, float r) {
+    float qx = abs(x) - w + r;
+    float qy = abs(y) - h + r;
+    float len = length(float2(max(qx, 0.0), max(qy, 0.0)));
+    return min(max(qx, qy), 0.0) + len - r;
+}
+
+half4 main(float2 coord) {
+    float2 relCoord = coord - uShape.xy;
+    float2 uv = relCoord / uShape.zw;
+
+    float ix = uv.x - 0.5;
+    float iy = uv.y - 0.5;
+
+    float distanceToEdge = roundedRectSDF(ix, iy, 0.3, 0.2, 0.6);
+
+    float displacement = smoothstep(0.8, 0.0, distanceToEdge - 0.15);
+
+    float scaled = smoothstep(0.0, 1.0, displacement);
+
+    float2 sourceUV = float2(ix * scaled + 0.5, iy * scaled + 0.5);
+    float2 center = sourceUV * uShape.zw + uShape.xy;
+
+    float blurAmt = 2.0;
+    half4 color = uBackground.eval(center) * 0.4;
+    color += uBackground.eval(center + float2(blurAmt, 0)) * 0.15;
+    color += uBackground.eval(center - float2(blurAmt, 0)) * 0.15;
+    color += uBackground.eval(center + float2(0, blurAmt)) * 0.15;
+    color += uBackground.eval(center - float2(0, blurAmt)) * 0.15;
+
+    float gray = dot(color.rgb, half3(0.299, 0.587, 0.114));
+    color.rgb = mix(float3(gray), color.rgb, 1.1);
+    color.rgb *= 1.05;
+
+    return color;
+}
