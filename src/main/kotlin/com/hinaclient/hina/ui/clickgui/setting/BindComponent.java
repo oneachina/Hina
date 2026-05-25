@@ -19,11 +19,10 @@
 package com.hinaclient.hina.ui.clickgui.setting;
 
 import com.hinaclient.hina.module.Module;
-import com.hinaclient.hina.setting.Setting;
 import com.hinaclient.hina.skia.font.FontManager;
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.Paint;
-import io.github.humbleui.types.Rect;
+import com.hinaclient.hina.ui.clickgui.Component;
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.RRect;
 import org.lwjgl.glfw.GLFW;
 
 public class BindComponent extends Component {
@@ -31,8 +30,8 @@ public class BindComponent extends Component {
     private boolean listening;
     private float currentX, currentY;
 
-    public BindComponent(Module module, Setting<?> setting, float width, float height) {
-        super(setting, width, height);
+    public BindComponent(Module module, float width, float height) {
+        super(null, width, height);
         this.module = module;
     }
 
@@ -41,31 +40,35 @@ public class BindComponent extends Component {
         this.currentX = x;
         this.currentY = y;
 
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
+        try (Paint bg = new Paint()) {
+            bg.setColor(0x40FFFFFF);
+            canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 8), bg);
+        }
 
-            if (isHovered(mouseX, mouseY, x, y)) {
-                paint.setColor(0x1AFFFFFF);
-                canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
+        boolean hover = isHovered(mouseX, mouseY, x, y);
+        if (hover) {
+            try (Paint hoverPaint = new Paint()) {
+                hoverPaint.setColor(0x1AFFFFFF);
+                canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 8), hoverPaint);
             }
+        }
 
-            String keyName = module.getKey() == -1 ? "NONE" : GLFW.glfwGetKeyName(module.getKey(), 0);
-            if (keyName == null) keyName = "Key: " + module.getKey();
+        String key = module.getKey() == -1 ? "未绑定" : GLFW.glfwGetKeyName(module.getKey(), 0);
+        if (key == null) key = "键位 " + module.getKey();
+        String text = listening ? "🎧 按下任意键..." : "🔘 按键: " + key.toUpperCase();
 
-            String text = listening ? "[Listening...]" : "Bind: " + keyName.toUpperCase();
-
-            try (Paint textPaint = new Paint()) {
-                textPaint.setColor(listening ? 0xFF55FF55 : 0xFFAAAAAA);
-                canvas.drawString(text, x + 10, y + height / 2 + 5, FontManager.INSTANCE.getTextFont(14), textPaint);
-            }
+        try (Paint textPaint = new Paint().setColor(listening ? 0xFF88FF88 : 0xFFEEEEEE)) {
+            Font font = FontManager.INSTANCE.getTextFont(13);
+            FontMetrics metrics = font.getMetrics();
+            float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
+            canvas.drawString(text, x + 12, textY, font, textPaint);
         }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isHovered(mouseX, mouseY, currentX, currentY) && button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-            this.listening = !this.listening;
+            listening = !listening;
             return true;
         }
         return false;
@@ -86,5 +89,4 @@ public class BindComponent extends Component {
         }
         return false;
     }
-
 }
