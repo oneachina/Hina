@@ -19,18 +19,21 @@
 package com.hinaclient.hina.ui.clickgui.setting;
 
 import com.hinaclient.hina.setting.ModeSetting;
+import com.hinaclient.hina.skia.SkiaRenderer;
 import com.hinaclient.hina.skia.font.FontManager;
 import com.hinaclient.hina.skia.font.Icon;
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.Paint;
+import com.hinaclient.hina.ui.clickgui.Component;
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
+import java.util.List;
 
 public class ModeComponent extends Component {
     private final ModeSetting modeSetting;
     private float currentX, currentY;
     private boolean expanded = false;
     private float dropdownProgress = 0f;
-    private final float OPTION_HEIGHT = 16f;
+    private final float OPTION_HEIGHT = 26;
 
     public ModeComponent(ModeSetting setting, float width, float height) {
         super(setting, width, height);
@@ -39,30 +42,20 @@ public class ModeComponent extends Component {
 
     @Override
     public void update() {
-        if (!setting.isVisible()) {
-            dropdownProgress = 0f;
-        } else {
-            float target = (expanded && modeSetting.isMulti()) ? 1f : 0f;
-            float diff = target - dropdownProgress;
-            if (Math.abs(diff) < 0.001f) {
-                dropdownProgress = target;
-            } else {
-                dropdownProgress += diff * 0.2f;
-            }
-        }
+        float target = expanded ? 1f : 0f;
+        dropdownProgress += (target - dropdownProgress) * 0.2f;
+        if (Math.abs(target - dropdownProgress) < 0.001f) dropdownProgress = target;
         super.update();
     }
 
     @Override
     public float getHeight() {
-        float baseHeight = super.getHeight();
-        if (!setting.isVisible() || baseHeight < 0.01f) return 0;
-
-        if (modeSetting.isMulti() && dropdownProgress > 0.01f) {
-            float listHeight = modeSetting.getModes().size() * OPTION_HEIGHT;
-            return baseHeight + (listHeight * dropdownProgress);
+        float base = super.getHeight();
+        if (!setting.isVisible() || base < 0.01f) return 0;
+        if (dropdownProgress > 0.01f) {
+            return base + (modeSetting.getModes().size() * OPTION_HEIGHT) * dropdownProgress;
         }
-        return baseHeight;
+        return base;
     }
 
     @Override
@@ -71,46 +64,45 @@ public class ModeComponent extends Component {
         this.currentX = x;
         this.currentY = y;
 
-        float baseHeight = height;
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(Rect.makeXYWH(x, y, width, baseHeight), paint);
+        try (Paint bg = new Paint()) {
+            bg.setColor(0x40FFFFFF);
+            canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 8), bg);
         }
 
-        try (Paint textPaint = new Paint()) {
-            io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(14);
-            float textY = y + baseHeight / 2 + 4;
-
-            textPaint.setColor(0xFFAAAAAA);
-            canvas.drawString(setting.getName() + ":", x + 6, textY, font, textPaint);
-
-            if (!modeSetting.isMulti()) {
-                textPaint.setColor(0xFFFFFFFF);
-                String modeValue = modeSetting.getValue();
-                if (modeValue.length() > 20) modeValue = modeValue.substring(0, 20) + "...";
-                float modeWidth = font.measureTextWidth(modeValue, textPaint);
-                canvas.drawString(modeValue, x + width - 6 - modeWidth, textY, font, textPaint);
-            } else {
-                textPaint.setColor(0xFF888888);
-                String hint = expanded ? Icon.ARROW_CIRCLE_UP : Icon.ARROW_CIRCLE_DOWN;
-                float hintWidth = font.measureTextWidth(hint, textPaint);
-                canvas.drawString(hint, x + width - 10 - hintWidth, textY, font, textPaint);
-            }
+        try (Paint textPaint = new Paint().setColor(0xFFEEEEEE)) {
+            Font font = FontManager.INSTANCE.getTextFont(13);
+            FontMetrics metrics = font.getMetrics();
+            float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
+            canvas.drawString(setting.getName(), x + 12, textY, font, textPaint);
         }
 
-        if (modeSetting.isMulti() && dropdownProgress > 0.01f) {
-            float optionY = y + baseHeight;
+        String value = modeSetting.getValue();
+        try (Paint valPaint = new Paint().setColor(0xFFFFFFFF)) {
+            Font font = FontManager.INSTANCE.getTextFont(12);
+            float valW = font.measureTextWidth(value, valPaint);
+            canvas.drawString(value, x + width - valW - 28, y + height / 2 + 4, font, valPaint);
+        }
+        SkiaRenderer.drawCenteredIcon(canvas, expanded ? Icon.ARROW_CIRCLE_UP : Icon.ARROW_CIRCLE_DOWN,
+                x + width - 18, y + height / 2, 12, 0xCCFFFFFF);
+
+        if (dropdownProgress > 0.01f) {
+            List<String> modes = modeSetting.getModes();
+            float listHeight = modes.size() * OPTION_HEIGHT;
+            float listY = y + height;
             canvas.save();
-            float totalListHeight = modeSetting.getModes().size() * OPTION_HEIGHT;
-            canvas.clipRect(Rect.makeXYWH(x, optionY, width, totalListHeight * dropdownProgress));
+            canvas.clipRect(Rect.makeXYWH(x, listY, width, listHeight * dropdownProgress));
 
-            try (Paint listPaint = new Paint()) {
-                io.github.humbleui.skija.Font subFont = FontManager.INSTANCE.getTextFont(12);
-                for (String mode : modeSetting.getModes()) {
-                    boolean isSelected = modeSetting.is(mode);
-                    listPaint.setColor(isSelected ? 0xFF55FF55 : 0xFFAAAAAA);
-                    canvas.drawString(mode, x + 12, optionY + OPTION_HEIGHT - 4, subFont, listPaint);
-                    optionY += OPTION_HEIGHT;
+            for (int i = 0; i < modes.size(); i++) {
+                String mode = modes.get(i);
+                boolean selected = mode.equals(modeSetting.getValue());
+                float optY = listY + i * OPTION_HEIGHT;
+                try (Paint optBg = new Paint()) {
+                    optBg.setColor(selected ? 0x30FFFFFF : 0x10FFFFFF);
+                    canvas.drawRRect(RRect.makeXYWH(x, optY, width, OPTION_HEIGHT, 6), optBg);
+                }
+                try (Paint optText = new Paint().setColor(selected ? 0xFFFFFFFF : 0xCCFFFFFF)) {
+                    Font font = FontManager.INSTANCE.getTextFont(12);
+                    canvas.drawString(mode, x + 16, optY + OPTION_HEIGHT / 2 + 4, font, optText);
                 }
             }
             canvas.restore();
@@ -120,22 +112,18 @@ public class ModeComponent extends Component {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!setting.isVisible()) return false;
-
         if (isHovered(mouseX, mouseY, currentX, currentY, width, height)) {
-            if (modeSetting.isMulti()) {
-                expanded = !expanded;
-            } else {
-                modeSetting.cycle();
-            }
+            expanded = !expanded;
             return true;
         }
-
-        if (modeSetting.isMulti() && expanded && dropdownProgress > 0.8f) {
+        if (expanded && dropdownProgress > 0.8f) {
             float startY = currentY + height;
-            for (int i = 0; i < modeSetting.getModes().size(); i++) {
-                float entryY = startY + (i * OPTION_HEIGHT);
-                if (mouseX >= currentX && mouseX <= currentX + width && mouseY >= entryY && mouseY <= entryY + OPTION_HEIGHT) {
-                    modeSetting.toggle(modeSetting.getModes().get(i));
+            List<String> modes = modeSetting.getModes();
+            for (int i = 0; i < modes.size(); i++) {
+                float optY = startY + i * OPTION_HEIGHT;
+                if (mouseX >= currentX && mouseX <= currentX + width && mouseY >= optY && mouseY <= optY + OPTION_HEIGHT) {
+                    modeSetting.setValue(modes.get(i));
+                    expanded = false;
                     return true;
                 }
             }
