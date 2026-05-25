@@ -20,18 +20,16 @@ package com.hinaclient.hina.ui.clickgui.setting;
 
 import com.hinaclient.hina.setting.ColorSetting;
 import com.hinaclient.hina.skia.font.FontManager;
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.Paint;
-import io.github.humbleui.skija.PaintMode;
-import io.github.humbleui.skija.Shader;
+import com.hinaclient.hina.ui.clickgui.Component;
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
 import java.awt.Color;
 
 public class ColorComponent extends Component {
     private final ColorSetting colorSetting;
     private float currentX, currentY;
-    private boolean draggingHue;
-    private boolean draggingSatVal;
+    private boolean draggingHue, draggingSatVal;
     private float hue, saturation, brightness;
 
     public ColorComponent(ColorSetting setting, float width, float height) {
@@ -58,93 +56,91 @@ public class ColorComponent extends Component {
         this.currentX = x;
         this.currentY = y;
 
-        if (!draggingHue && !draggingSatVal) {
-            updateHSB();
-        }
+        if (!draggingHue && !draggingSatVal) updateHSB();
 
-        float padding = 8;
-        float contentWidth = width - padding * 2;
-        float hueHeight = 12;
-        float pickerHeight = height - hueHeight - padding * 3 - 15;
-        float pickerX = x + padding;
-        float pickerY = y + 20;
-        float hueX = x + padding;
-        float hueY = pickerY + pickerHeight + padding;
+        float pad = 10;
+        float contentW = width - pad * 2;
+        float hueH = 12;
+        float pickerH = height - hueH - pad * 3 - 20;
+        float pickerX = x + pad, pickerY = y + 20;
+        float hueX = x + pad, hueY = pickerY + pickerH + pad;
 
         if (draggingHue) {
-            float diff = mouseX - hueX;
-            hue = Math.clamp(diff / contentWidth, 0f, 1f);
+            float diff = Math.clamp((mouseX - hueX) / contentW, 0f, 1f);
+            hue = diff;
             updateColor();
         } else if (draggingSatVal) {
-            float diffX = mouseX - pickerX;
-            float diffY = mouseY - pickerY;
-            saturation = Math.clamp(diffX / contentWidth, 0f, 1f);
-            brightness = 1f - Math.clamp(diffY / pickerHeight, 0f, 1f);
+            float diffX = Math.clamp((mouseX - pickerX) / contentW, 0f, 1f);
+            float diffY = Math.clamp((mouseY - pickerY) / pickerH, 0f, 1f);
+            saturation = diffX;
+            brightness = 1f - diffY;
             updateColor();
         }
 
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
+        try (Paint bg = new Paint()) {
+            bg.setColor(0x40FFFFFF);
+            canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 10), bg);
         }
-        try (Paint textPaint = new Paint()) {
-            textPaint.setColor(0xFFAAAAAA);
-            io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(14);
-            canvas.drawString(setting.getName(), x + padding, y + 14, font, textPaint);
+
+        try (Paint text = new Paint().setColor(0xFFEEEEEE)) {
+            Font font = FontManager.INSTANCE.getTextFont(13);
+            canvas.drawString(setting.getName(), x + pad, y + 16, font, text);
         }
-        try (Paint p = new Paint()) {
-            p.setColor(Color.HSBtoRGB(hue, 1f, 1f));
-            canvas.drawRect(Rect.makeXYWH(pickerX, pickerY, contentWidth, pickerHeight), p);
-            try (Shader s = Shader.makeLinearGradient(pickerX, pickerY, pickerX + contentWidth, pickerY, new int[]{0xFFFFFFFF, 0x00FFFFFF})) {
-                try (Paint p2 = new Paint()) {
-                    p2.setShader(s);
-                    canvas.drawRect(Rect.makeXYWH(pickerX, pickerY, contentWidth, pickerHeight), p2);
+
+        try (Paint satPaint = new Paint()) {
+            satPaint.setColor(Color.HSBtoRGB(hue, 1f, 1f));
+            canvas.drawRect(Rect.makeXYWH(pickerX, pickerY, contentW, pickerH), satPaint);
+
+            try (Shader whiteGrad = Shader.makeLinearGradient(pickerX, pickerY, pickerX + contentW, pickerY,
+                    new int[]{0xFFFFFFFF, 0x00FFFFFF})) {
+                try (Paint gradPaint = new Paint().setShader(whiteGrad)) {
+                    canvas.drawRect(Rect.makeXYWH(pickerX, pickerY, contentW, pickerH), gradPaint);
                 }
             }
-            try (Shader s = Shader.makeLinearGradient(pickerX, pickerY, pickerX, pickerY + pickerHeight, new int[]{0x00000000, 0xFF000000})) {
-                try (Paint p2 = new Paint()) {
-                    p2.setShader(s);
-                    canvas.drawRect(Rect.makeXYWH(pickerX, pickerY, contentWidth, pickerHeight), p2);
+
+            try (Shader blackGrad = Shader.makeLinearGradient(pickerX, pickerY, pickerX, pickerY + pickerH,
+                    new int[]{0x00000000, 0xFF000000})) {
+                try (Paint gradPaint = new Paint().setShader(blackGrad)) {
+                    canvas.drawRect(Rect.makeXYWH(pickerX, pickerY, contentW, pickerH), gradPaint);
                 }
             }
-            p.setColor(0xFFFFFFFF);
-            p.setStrokeWidth(2f);
-            p.setMode(PaintMode.STROKE);
-            float indX = pickerX + saturation * contentWidth;
-            float indY = pickerY + (1f - brightness) * pickerHeight;
-            canvas.drawCircle(indX, indY, 4, p);
-        }
-        int[] hueColors = new int[360 / 10 + 1];
-        for (int i = 0; i < hueColors.length; i++) hueColors[i] = Color.HSBtoRGB((float) i / (hueColors.length - 1), 1f, 1f);
-        try (Shader s = Shader.makeLinearGradient(hueX, hueY, hueX + contentWidth, hueY, hueColors)) {
-            try (Paint p = new Paint()) {
-                p.setShader(s);
-                canvas.drawRect(Rect.makeXYWH(hueX, hueY, contentWidth, hueHeight), p);
+
+            float indX = pickerX + saturation * contentW;
+            float indY = pickerY + (1f - brightness) * pickerH;
+            try (Paint ind = new Paint()) {
+                ind.setColor(0xFFFFFFFF);
+                ind.setMode(PaintMode.STROKE);
+                ind.setStrokeWidth(2f);
+                canvas.drawCircle(indX, indY, 5, ind);
             }
         }
-        try (Paint p = new Paint()) {
-            p.setColor(0xFFFFFFFF);
-            canvas.drawRect(Rect.makeXYWH(hueX + hue * contentWidth - 1, hueY - 1, 2, hueHeight + 2), p);
+
+        int[] hueColors = new int[36];
+        for (int i = 0; i < hueColors.length; i++)
+            hueColors[i] = Color.HSBtoRGB((float) i / (hueColors.length - 1), 1f, 1f);
+        try (Shader hueShader = Shader.makeLinearGradient(hueX, hueY, hueX + contentW, hueY, hueColors)) {
+            try (Paint huePaint = new Paint().setShader(hueShader)) {
+                canvas.drawRRect(RRect.makeXYWH(hueX, hueY, contentW, hueH, hueH / 2), huePaint);
+            }
+        }
+
+        try (Paint marker = new Paint().setColor(0xFFFFFFFF).setMode(PaintMode.STROKE).setStrokeWidth(2)) {
+            canvas.drawRect(Rect.makeXYWH(hueX + hue * contentW - 2, hueY - 1, 4, hueH + 2), marker);
         }
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double mx, double my, int button) {
         if (!setting.isVisible()) return false;
-        float padding = 8;
-        float contentWidth = width - padding * 2;
-        float hueHeight = 12;
-        float pickerHeight = height - hueHeight - padding * 3 - 15;
-        float pickerX = currentX + padding;
-        float pickerY = currentY + 20;
-        float hueX = currentX + padding;
-        float hueY = pickerY + pickerHeight + padding;
+        float pad = 10, contentW = width - pad * 2, hueH = 12, pickerH = height - hueH - pad * 3 - 20;
+        float pickerX = currentX + pad, pickerY = currentY + 20;
+        float hueX = currentX + pad, hueY = pickerY + pickerH + pad;
         if (button == 0) {
-            if (mouseX >= pickerX && mouseX <= pickerX + contentWidth && mouseY >= pickerY && mouseY <= pickerY + pickerHeight) {
+            if (mx >= pickerX && mx <= pickerX + contentW && my >= pickerY && my <= pickerY + pickerH) {
                 draggingSatVal = true;
                 return true;
             }
-            if (mouseX >= hueX && mouseX <= hueX + contentWidth && mouseY >= hueY && mouseY <= hueY + hueHeight) {
+            if (mx >= hueX && mx <= hueX + contentW && my >= hueY && my <= hueY + hueH) {
                 draggingHue = true;
                 return true;
             }
@@ -153,7 +149,7 @@ public class ColorComponent extends Component {
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(double mx, double my, int button) {
         if (button == 0) {
             draggingHue = false;
             draggingSatVal = false;
