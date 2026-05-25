@@ -18,12 +18,12 @@
 
 package com.hinaclient.hina.ui.clickgui.setting;
 
+import com.hinaclient.hina.module.impl.render.ClickGuiModule;
 import com.hinaclient.hina.setting.NumberSetting;
 import com.hinaclient.hina.skia.font.FontManager;
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.Paint;
-import io.github.humbleui.types.Rect;
-import com.hinaclient.hina.module.impl.render.ClickGuiModule;
+import com.hinaclient.hina.ui.clickgui.Component;
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.RRect;
 
 public class SliderComponent extends Component {
     private final NumberSetting numSetting;
@@ -40,39 +40,54 @@ public class SliderComponent extends Component {
         if (!setting.isVisible()) return;
         this.currentX = x;
         this.currentY = y;
+
         if (dragging) {
-            float diff = mouseX - (x + 8);
-            float percent = Math.clamp(diff / (width - 16), 0, 1);
-            double newValue = numSetting.getMin() + (numSetting.getMax() - numSetting.getMin()) * percent;
-            if (numSetting.getIncrement() != 0) newValue = Math.round(newValue / numSetting.getIncrement()) * numSetting.getIncrement();
-            numSetting.setValue(newValue);
+            float percent = (mouseX - (x + 12)) / (width - 24);
+            percent = Math.clamp(percent, 0, 1);
+            double val = numSetting.getMin() + (numSetting.getMax() - numSetting.getMin()) * percent;
+            if (numSetting.getIncrement() > 0)
+                val = Math.round(val / numSetting.getIncrement()) * numSetting.getIncrement();
+            numSetting.setValue(val);
         }
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
+
+        try (Paint bg = new Paint()) {
+            bg.setColor(0x40FFFFFF);
+            canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 8), bg);
         }
-        float sliderX = x + 8;
-        float sliderY = y + height - 6;
-        float sliderWidth = width - 16;
-        float sliderHeight = 3;
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xFF404040);
-            canvas.drawRect(Rect.makeXYWH(sliderX, sliderY, sliderWidth, sliderHeight), paint);
+
+        try (Paint textPaint = new Paint().setColor(0xFFEEEEEE)) {
+            Font font = FontManager.INSTANCE.getTextFont(13);
+            FontMetrics metrics = font.getMetrics();
+            float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
+            canvas.drawString(setting.getName(), x + 12, textY, font, textPaint);
         }
-        double currentPercent = (numSetting.getValue() - numSetting.getMin()) / (numSetting.getMax() - numSetting.getMin());
-        try (Paint paint = new Paint()) {
-            paint.setColor(ClickGuiModule.getThemeColor());
-            canvas.drawRect(Rect.makeXYWH(sliderX, sliderY, (float)(sliderWidth * currentPercent), sliderHeight), paint);
+
+        String valStr = String.format("%.1f", numSetting.getValue());
+        try (Paint valPaint = new Paint().setColor(0xCCFFFFFF)) {
+            Font font = FontManager.INSTANCE.getTextFont(12);
+            float valW = font.measureTextWidth(valStr, valPaint);
+            canvas.drawString(valStr, x + width - valW - 12, y + height / 2 + 4, font, valPaint);
         }
-        try (Paint textPaint = new Paint()) {
-            textPaint.setColor(0xFFAAAAAA);
-            io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(14);
-            io.github.humbleui.skija.FontMetrics metrics = font.getMetrics();
-            float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2 - 2;
-            canvas.drawString(setting.getName(), x + 8, textY, font, textPaint);
-            String valStr = String.format("%.2f", numSetting.getValue());
-            float valWidth = font.measureTextWidth(valStr, textPaint);
-            canvas.drawString(valStr, x + width - 8 - valWidth, textY, font, textPaint);
+
+        float sliderX = x + 12, sliderY = y + height - 12;
+        float sliderW = width - 24, sliderH = 4;
+        try (Paint track = new Paint()) {
+            track.setColor(0x66FFFFFF);
+            canvas.drawRRect(RRect.makeXYWH(sliderX, sliderY, sliderW, sliderH, 2), track);
+        }
+
+        double percent = (numSetting.getValue() - numSetting.getMin()) / (numSetting.getMax() - numSetting.getMin());
+        float fillW = (float) (sliderW * percent);
+        try (Paint fill = new Paint()) {
+            fill.setColor(ClickGuiModule.getThemeColor());
+            canvas.drawRRect(RRect.makeXYWH(sliderX, sliderY, fillW, sliderH, 2), fill);
+        }
+
+        float knobX = sliderX + fillW;
+        float knobY = sliderY + sliderH / 2;
+        try (Paint knob = new Paint()) {
+            knob.setColor(0xFFFFFFFF);
+            canvas.drawCircle(knobX, knobY, 7, knob);
         }
     }
 
