@@ -18,13 +18,12 @@
 
 package com.hinaclient.hina.ui.clickgui.setting;
 
+import com.hinaclient.hina.module.impl.render.ClickGuiModule;
 import com.hinaclient.hina.setting.BooleanSetting;
 import com.hinaclient.hina.skia.font.FontManager;
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.Paint;
+import com.hinaclient.hina.ui.clickgui.Component;
+import io.github.humbleui.skija.*;
 import io.github.humbleui.types.RRect;
-import io.github.humbleui.types.Rect;
-import com.hinaclient.hina.module.impl.render.ClickGuiModule;
 
 public class CheckboxComponent extends Component {
     private final BooleanSetting boolSetting;
@@ -39,12 +38,8 @@ public class CheckboxComponent extends Component {
     @Override
     public void update() {
         float target = boolSetting.getValue() ? 1.0f : 0.0f;
-        float diff = target - animationProgress;
-        if (Math.abs(diff) < 0.001f) {
-            animationProgress = target;
-        } else {
-            animationProgress += diff * 0.2f;
-        }
+        animationProgress += (target - animationProgress) * 0.2f;
+        if (Math.abs(target - animationProgress) < 0.001f) animationProgress = target;
         super.update();
     }
 
@@ -54,31 +49,33 @@ public class CheckboxComponent extends Component {
         this.currentX = x;
         this.currentY = y;
 
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xCC1A1A1A);
-            canvas.drawRect(Rect.makeXYWH(x, y, width, height), paint);
+        try (Paint bg = new Paint()) {
+            bg.setColor(0x40FFFFFF);
+            canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 8), bg);
         }
-        try (Paint textPaint = new Paint()) {
-            textPaint.setColor(0xFFAAAAAA);
-            io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(14);
-            io.github.humbleui.skija.FontMetrics metrics = font.getMetrics();
+
+        try (Paint textPaint = new Paint().setColor(0xFFEEEEEE)) {
+            Font font = FontManager.INSTANCE.getTextFont(13);
+            FontMetrics metrics = font.getMetrics();
             float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
-            canvas.drawString(setting.getName(), x + 8, textY, font, textPaint);
+            canvas.drawString(setting.getName(), x + 12, textY, font, textPaint);
         }
-        float switchWidth = 32;
-        float switchHeight = 12;
-        float switchX = x + width - switchWidth - 10;
-        float switchY = y + (height - switchHeight) / 2;
-        try (Paint paint = new Paint()) {
-            paint.setColor(animationProgress > 0.5f ? ClickGuiModule.getThemeColor() : 0xFF555555);
-            canvas.drawRRect(RRect.makeXYWH(switchX, switchY, switchWidth, switchHeight, switchHeight / 2), paint);
+
+        float switchW = 36, switchH = 20;
+        float switchX = x + width - switchW - 12;
+        float switchY = y + (height - switchH) / 2;
+
+        try (Paint track = new Paint()) {
+            track.setColor(animationProgress > 0.5f ? ClickGuiModule.getThemeColor() : 0xAA555555);
+            canvas.drawRRect(RRect.makeXYWH(switchX, switchY, switchW, switchH, switchH / 2), track);
         }
-        float knobSize = 10;
-        float knobX = switchX + 1 + (switchWidth - knobSize - 2) * animationProgress;
-        float knobY = switchY + 1;
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xFFFFFFFF);
-            canvas.drawOval(Rect.makeXYWH(knobX, knobY, knobSize, knobSize), paint);
+
+        float knobSize = switchH - 4;
+        float knobX = switchX + 2 + (switchW - knobSize - 4) * animationProgress;
+        float knobY = switchY + 2;
+        try (Paint knob = new Paint()) {
+            knob.setColor(0xFFFFFFFF);
+            canvas.drawCircle(knobX + knobSize / 2, knobY + knobSize / 2, knobSize / 2, knob);
         }
     }
 
