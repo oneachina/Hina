@@ -5,6 +5,7 @@ import com.hinaclient.hina.event.impl.AttackEvent;
 import com.hinaclient.hina.event.impl.ClientTickEvent;
 import com.hinaclient.hina.module.Category;
 import com.hinaclient.hina.module.Module;
+import com.hinaclient.hina.setting.BooleanSetting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -20,6 +21,15 @@ import java.util.Random;
 public class MacePlus extends Module {
     private static final Random RANDOM = new Random();
 
+    private static final int ASB_IDLE = 0;
+    private static final int ASB_AXE_CLICK = 1;
+    private static final int ASB_AXE_SENT = 2;
+    private static final int ASB_MACE_CLICK = 3;
+    private static final int ASB_MACE_SENT = 4;
+    private static final int ASB_DONE = 5;
+
+    private final BooleanSetting alwaysShieldBreak = new BooleanSetting("AlwaysShieldBreak", false);
+
     private int originalSlot = -1;
     private long revertTime = -1;
     private boolean pendingRevert = false;
@@ -28,8 +38,11 @@ public class MacePlus extends Module {
     private int maceSlot = -1;
     private LivingEntity shieldTarget;
 
+    private int asbState = ASB_IDLE;
+
     public MacePlus() {
         super("MacePlus", Category.COMBAT);
+        addSetting(alwaysShieldBreak);
     }
 
     @EventListener
@@ -37,6 +50,30 @@ public class MacePlus extends Module {
         if (client.player == null || client.level == null) return;
         LivingEntity target = event.getTarget();
         if (target == null) return;
+
+        if (alwaysShieldBreak.getValue()) {
+            switch (asbState) {
+                case ASB_AXE_SENT:
+                    asbState = ASB_MACE_CLICK;
+                    return;
+                case ASB_MACE_SENT:
+                    asbState = ASB_DONE;
+                    return;
+                case ASB_IDLE: {
+                    int axe = findAxeSlot();
+                    int bestMace = findBestMaceSlot();
+                    if (axe == -1 || bestMace == -1) return;
+                    originalSlot = client.player.getInventory().getSelectedSlot();
+                    maceSlot = bestMace;
+                    event.setCancelled(true);
+                    asbState = ASB_AXE_CLICK;
+                    return;
+                }
+                default:
+                    event.setCancelled(true);
+                    return;
+            }
+        }
 
         if (hasShield(target)) {
             int axeSlot = findAxeSlot();
@@ -71,6 +108,30 @@ public class MacePlus extends Module {
     private void onTick(ClientTickEvent event) {
         if (client.player == null || client.level == null) return;
         long now = System.currentTimeMillis();
+
+        if (alwaysShieldBreak.getValue()) {
+            switch (asbState) {
+                case ASB_AXE_CLICK:
+                    client.player.getInventory().setSelectedSlot(findAxeSlot());
+                    KeyMapping.click(client.options.keyAttack.getDefaultKey());
+                    asbState = ASB_AXE_SENT;
+                    return;
+                case ASB_MACE_CLICK:
+                    client.player.getInventory().setSelectedSlot(maceSlot);
+                    KeyMapping.click(client.options.keyAttack.getDefaultKey());
+                    asbState = ASB_MACE_SENT;
+                    return;
+                case ASB_DONE:
+                    if (originalSlot != -1) {
+                        client.player.getInventory().setSelectedSlot(originalSlot);
+                    }
+                    originalSlot = -1;
+                    maceSlot = -1;
+                    asbState = ASB_IDLE;
+                    return;
+            }
+            return;
+        }
 
         if (shieldBreakInProgress) {
             if (shieldTarget == null || shieldTarget.isRemoved()) {
@@ -167,6 +228,7 @@ public class MacePlus extends Module {
         }
         originalSlot = -1;
         pendingRevert = false;
+        asbState = ASB_IDLE;
         super.onDisable();
     }
 }
