@@ -19,14 +19,20 @@ package com.hinaclient.hina.mixin.mixins;
 
 import com.hinaclient.hina.event.EventBus;
 import com.hinaclient.hina.event.impl.AttackEvent;
+import com.hinaclient.hina.event.impl.BlockPlaceEvent;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(MultiPlayerGameMode.class)
 public class MixinMultiPlayerGameMode {
@@ -40,6 +46,19 @@ public class MixinMultiPlayerGameMode {
             if (event.isCancelled()) {
                 ci.cancel();
             }
+        }
+    }
+
+    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
+    private void onUseItemOn(LocalPlayer player, InteractionHand hand, BlockHitResult hitResult,
+                             CallbackInfoReturnable<InteractionResult> cir) {
+        BlockPlaceEvent event = new BlockPlaceEvent(player,
+                hitResult.getBlockPos().relative(hitResult.getDirection()),
+                player.getItemInHand(hand));
+        EventBus.INSTANCE.post(event);
+
+        if (event.isCancelled()) {
+            cir.setReturnValue(InteractionResult.FAIL);
         }
     }
 }

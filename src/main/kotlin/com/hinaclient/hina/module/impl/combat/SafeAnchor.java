@@ -1,94 +1,96 @@
-/*
- * Hina Client
- * Copyright (C) 2026 Hina Client
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
 package com.hinaclient.hina.module.impl.combat;
 
 import com.hinaclient.hina.event.EventListener;
+import com.hinaclient.hina.event.impl.BlockPlaceEvent;
 import com.hinaclient.hina.event.impl.ClientTickEvent;
 import com.hinaclient.hina.module.Category;
 import com.hinaclient.hina.module.Module;
-import net.minecraft.util.Util;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RespawnAnchorBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 
 public class SafeAnchor extends Module {
-    private int oldSlot = -1;
-    private long lastActionTime = 0L;
-    private BlockHitResult lastBhr = null;
+    private static final int IDLE = 0;
+    private static final int PLACED = 1;
+    private static final int CHARGING = 2;
+    private static final int DETONATING = 3;
+
+    private int state = IDLE;
+    private int originalSlot = -1;
+    private int glowstoneSlot = -1;
 
     public SafeAnchor() {
         super("SafeAnchor", Category.COMBAT);
     }
 
     @EventListener
-    public void onTick(ClientTickEvent event) {
-        if (client.player == null || client.level == null || client.gameMode == null) return;
-        if (oldSlot != -1 && Util.getMillis() - lastActionTime > 70L) {
-            client.player.getInventory().setSelectedSlot(oldSlot);
-            if (lastBhr != null) {
-                client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, lastBhr);
-                client.player.swing(InteractionHand.MAIN_HAND);
-            }
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (client.player == null) return;
+        if (event.getItem().getItem() != Items.RESPAWN_ANCHOR) return;
 
-            oldSlot = -1;
-            lastBhr = null;
+        glowstoneSlot = findGlowstoneSlot();
+        if (glowstoneSlot == -1) return;
+
+        originalSlot = client.player.getInventory().getSelectedSlot();
+        state = PLACED;
+    }
+
+    @EventListener
+    public void onTick(ClientTickEvent event) {
+        if (client.player == null) return;
+
+        if (state == PLACED) {
+            client.player.getInventory().setSelectedSlot(glowstoneSlot);
+            KeyMapping.click(client.options.keyUse.getDefaultKey());
+            state = CHARGING;
             return;
         }
 
-        if (client.hitResult != null && client.hitResult.getType() == HitResult.Type.BLOCK) {
-            BlockHitResult bhr = (BlockHitResult) client.hitResult;
-            BlockState state = client.level.getBlockState(bhr.getBlockPos());
-
-            if (state.is(Blocks.RESPAWN_ANCHOR)) {
-                int currentCharges = state.getValue(RespawnAnchorBlock.CHARGE);
-
-                if (client.options.keyUse.isDown() && currentCharges < 4) {
-                    if (Util.getMillis() - lastActionTime > 50L) {
-                        change(bhr);
-                    }
-                }
+        if (state == CHARGING) {
+            int detonateSlot = findDetonateSlot();
+            if (detonateSlot == -1) {
+                revert();
+                return;
             }
+            client.player.getInventory().setSelectedSlot(detonateSlot);
+            KeyMapping.click(client.options.keyUse.getDefaultKey());
+            state = DETONATING;
+            return;
+        }
+
+        if (state == DETONATING) {
+            revert();
         }
     }
 
-    private void change(BlockHitResult bhr) {
-        int glowstoneSlot = -1;
-        for (int i = 0; i < 9; i++) {
-            if (client.player.getInventory().getItem(i).is(Items.GLOWSTONE)) {
-                glowstoneSlot = i;
-                break;
-            }
+    private void revert() {
+        if (client.player != null && originalSlot != -1) {
+            client.player.getInventory().setSelectedSlot(originalSlot);
         }
+        originalSlot = -1;
+        glowstoneSlot = -1;
+        state = IDLE;
+    }
 
-        if (glowstoneSlot != -1) {
-            oldSlot = client.player.getInventory().getSelectedSlot();
-            lastBhr = bhr;
-
-            client.player.getInventory().setSelectedSlot(glowstoneSlot);
-
-            client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, bhr);
-            client.player.swing(InteractionHand.MAIN_HAND);
-
-            lastActionTime = Util.getMillis();
+    private int findGlowstoneSlot() {
+        for (int i = 0; i <= 8; i++) {
+            if (client.player.getInventory().getItem(i).is(Items.GLOWSTONE)) return i;
         }
+        return -1;
+    }
+
+    private int findDetonateSlot() {
+        for (int i = 0; i <= 8; i++) {
+            if (client.player.getInventory().getItem(i).is(Items.TOTEM_OF_UNDYING)) return i;
+        }
+        for (int i = 0; i <= 8; i++) {
+            if (!client.player.getInventory().getItem(i).is(Items.GLOWSTONE)) return i;
+        }
+        return client.player.getInventory().getSelectedSlot();
+    }
+
+    @Override
+    protected void onDisable() {
+        revert();
+        super.onDisable();
     }
 }
