@@ -24,8 +24,10 @@ import com.hinaclient.hina.event.skia.EventSkiaDrawScene;
 import com.hinaclient.hina.module.Category;
 import com.hinaclient.hina.skia.font.FontManager;
 import com.hinaclient.hina.ui.clickgui.Panel;
+import com.hinaclient.hina.utils.shader.LiquidGlassShader;
 import io.github.humbleui.skija.*;
 import io.github.humbleui.types.RRect;
+import io.github.humbleui.types.Rect;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -50,6 +52,9 @@ public class ClickGuiScreen extends Screen {
     private final float EDIT_BUTTON_X = 20;
     private float EDIT_BUTTON_Y;
 
+    private LiquidGlassShader liquidGlassShader;
+    private long lastFrameTime = 0;
+
     public ClickGuiScreen() {
         super(Component.translatable("hina.clickgui.name"));
         float x = 20;
@@ -65,6 +70,8 @@ public class ClickGuiScreen extends Screen {
     @Override
     protected void init() {
         EventBus.INSTANCE.register(this);
+        LiquidGlassShader.init();
+        lastFrameTime = System.currentTimeMillis();
     }
 
     @Override
@@ -176,6 +183,11 @@ public class ClickGuiScreen extends Screen {
         canvas.save();
         canvas.scale(GUI_SCALE, GUI_SCALE);
 
+        var surface = event.getSurface();
+        var background = surface.makeImageSnapshot();
+
+        float time = (System.currentTimeMillis() - lastFrameTime) / 1000f;
+
         float logicalWidth = this.minecraft.getWindow().getHeight() / GUI_SCALE;
         float logicalHeight = this.minecraft.getWindow().getWidth() / GUI_SCALE;
         float centerX = logicalWidth / 2f;
@@ -191,7 +203,18 @@ public class ClickGuiScreen extends Screen {
                                       transformedMouseY >= EDIT_BUTTON_Y - EDIT_BUTTON_HEIGHT && transformedMouseY <= EDIT_BUTTON_Y;
         editButtonHover = isHoveringEditButton ? Math.min(1f, editButtonHover + 0.15f) : Math.max(0f, editButtonHover - 0.15f);
 
-        for (Panel panel : panels) panel.render(canvas, transformedMouseX, transformedMouseY);
+        for (Panel panel : panels) {
+            float panelX = panel.getX() * GUI_SCALE;
+            float panelY = panel.getY() * GUI_SCALE;
+            float panelW = panel.getWidth() * GUI_SCALE;
+            float panelH = panel.getHeight() * GUI_SCALE;
+            var screenRect = Rect.makeXYWH(0, 0, logicalWidth, logicalHeight);
+            var glassRect = Rect.makeXYWH(panelX, panelY, panelW, panelH);
+
+            Shader glassShader = LiquidGlassShader.makeShader(background, time, screenRect, glassRect, 14f);
+            panel.render(canvas, transformedMouseX, transformedMouseY, glassShader);
+            if (glassShader != null) glassShader.close();
+        }
 
         try (Paint paint = new Paint()) {
             int COLOR_GEHENNA_BLUE = 0xFF5C6BC0;
