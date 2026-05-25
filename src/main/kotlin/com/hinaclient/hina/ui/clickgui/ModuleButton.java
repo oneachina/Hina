@@ -21,11 +21,12 @@ package com.hinaclient.hina.ui.clickgui;
 import com.hinaclient.hina.module.Module;
 import com.hinaclient.hina.module.impl.render.ClickGuiModule;
 import com.hinaclient.hina.setting.*;
+import com.hinaclient.hina.skia.SkiaRenderer;
 import com.hinaclient.hina.skia.font.FontManager;
+import com.hinaclient.hina.skia.font.Icon;
 import com.hinaclient.hina.ui.clickgui.setting.*;
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.Paint;
-import io.github.humbleui.skija.PaintMode;
+import io.github.humbleui.skija.*;
+import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,20 +39,25 @@ public class ModuleButton {
     private boolean extended = false;
     private float enableProgress = 0f;
     private float extensionProgress = 0f;
-    private final float SETTING_HEIGHT = 26;
-    private final float COLOR_HEIGHT = 100;
+    private float hoverAlpha = 0f;
+    private final float SETTING_HEIGHT = 30;
+    private final float COLOR_HEIGHT = 110;
 
     public ModuleButton(Module module, float width, float height) {
         this.module = module;
         this.width = width;
         this.height = height;
         for (Setting<?> setting : module.getSettings()) {
-            if (setting instanceof BooleanSetting) components.add(new CheckboxComponent((BooleanSetting) setting, width, SETTING_HEIGHT));
-            else if (setting instanceof NumberSetting) components.add(new SliderComponent((NumberSetting) setting, width, SETTING_HEIGHT));
-            else if (setting instanceof ModeSetting) components.add(new ModeComponent((ModeSetting) setting, width, SETTING_HEIGHT));
-            else if (setting instanceof ColorSetting) components.add(new ColorComponent((ColorSetting) setting, width, COLOR_HEIGHT));
+            if (setting instanceof BooleanSetting)
+                components.add(new CheckboxComponent((BooleanSetting) setting, width, SETTING_HEIGHT));
+            else if (setting instanceof NumberSetting)
+                components.add(new SliderComponent((NumberSetting) setting, width, SETTING_HEIGHT));
+            else if (setting instanceof ModeSetting)
+                components.add(new ModeComponent((ModeSetting) setting, width, SETTING_HEIGHT));
+            else if (setting instanceof ColorSetting)
+                components.add(new ColorComponent((ColorSetting) setting, width, COLOR_HEIGHT));
         }
-        components.add(new BindComponent(module, new BindSetting("Bind", module.getKey()), width, SETTING_HEIGHT));
+        components.add(new BindComponent(module, width, SETTING_HEIGHT));
     }
 
     public void update() {
@@ -63,29 +69,57 @@ public class ModuleButton {
         extensionProgress += (extTarget - extensionProgress) * 0.2f;
         if (Math.abs(extTarget - extensionProgress) < 0.001f) extensionProgress = extTarget;
 
-        for (Component comp : components) {
-            comp.update();
-        }
+        for (Component comp : components) comp.update();
     }
 
     public void render(Canvas canvas, float x, float y, int mouseX, int mouseY) {
-        if (enableProgress > 0.01f) {
-            try (Paint fill = new Paint()) {
-                fill.setMode(PaintMode.FILL);
-                int themeColor = ClickGuiModule.getThemeColor();
-                fill.setColor(themeColor);
-                float centerX = x + width / 2;
-                float currentWidth = width * enableProgress;
-                canvas.drawRect(Rect.makeXYWH(centerX - currentWidth / 2, y, currentWidth, height), fill);
+        boolean hover = isHovered(mouseX, mouseY, x, y, width, height);
+        float targetHover = hover ? 0.1f : 0f;
+        hoverAlpha += (targetHover - hoverAlpha) * 0.3f;
+
+        try (Paint bg = new Paint()) {
+            bg.setColor(0x80FFFFFF);
+            canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 10), bg);
+        }
+        if (hoverAlpha > 0.01f) {
+            try (Paint hoverPaint = new Paint()) {
+                hoverPaint.setColor(0x33FFFFFF);
+                canvas.drawRRect(RRect.makeXYWH(x, y, width, height, 10), hoverPaint);
             }
         }
-        try (Paint textPaint = new Paint()) {
-            textPaint.setColor(module.isEnabled() ? 0xFFFFFFFF : 0xFFAAAAAA);
-            io.github.humbleui.skija.Font font = FontManager.INSTANCE.getTextFont(14);
-            io.github.humbleui.skija.FontMetrics metrics = font.getMetrics();
-            float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
-            canvas.drawString(module.getName(), x + 12, textY, font, textPaint);
+
+        if (enableProgress > 0.01f) {
+            try (Paint fill = new Paint()) {
+                int theme = ClickGuiModule.getThemeColor();
+                fill.setColor(theme);
+                float fillWidth = width * enableProgress;
+                canvas.drawRRect(RRect.makeXYWH(x, y, fillWidth, height, 10), fill);
+            }
         }
+
+        try (Paint accent = new Paint()) {
+            accent.setColor(ClickGuiModule.getThemeColor());
+            canvas.drawRRect(RRect.makeXYWH(x, y + 4, 3, height - 8, 1.5f), accent);
+        }
+        try (Paint textPaint = new Paint().setColor(module.isEnabled() ? 0xFFFFFFFF : 0xCCFFFFFF)) {
+            Font font = FontManager.INSTANCE.getTextFont(14);
+            FontMetrics metrics = font.getMetrics();
+            float textY = y + height / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
+            canvas.drawString(module.getName(), x + 14, textY, font, textPaint);
+        }
+
+        String keyName = module.getKey() == -1 ? "无" : org.lwjgl.glfw.GLFW.glfwGetKeyName(module.getKey(), 0);
+        if (keyName == null) keyName = "键" + module.getKey();
+        try (Paint keyPaint = new Paint().setColor(0xAAFFFFFF)) {
+            Font font = FontManager.INSTANCE.getTextFont(11);
+            float keyWidth = font.measureTextWidth(keyName, keyPaint);
+            canvas.drawString(keyName, x + width - keyWidth - 24, y + height / 2 + 3, font, keyPaint);
+        }
+
+        if (!components.isEmpty()) {
+            SkiaRenderer.drawCenteredIcon(canvas, Icon.SETTINGS, x + width - 16, y + height / 2, 12, 0xCCFFFFFF);
+        }
+
         if (extensionProgress > 0.01f) {
             float yOffset = y + height;
             canvas.save();
@@ -110,12 +144,12 @@ public class ModuleButton {
         return h;
     }
 
-    public boolean mouseClicked(double mouseX, double mouseY, int button, float x, float y) {
-        if (isHovered(mouseX, mouseY, x, y, width, height)) {
-            if (button == 0) {
+    public boolean mouseClicked(double mx, double my, int btn, float x, float y) {
+        if (isHovered(mx, my, x, y, width, height)) {
+            if (btn == 0) {
                 module.toggle();
                 return true;
-            } else if (button == 1) {
+            } else if (btn == 1) {
                 extended = !extended;
                 return true;
             }
@@ -123,36 +157,34 @@ public class ModuleButton {
         if (extended) {
             float yOffset = y + height;
             for (Component comp : components) {
-                if (comp.mouseClicked(mouseX, mouseY, button)) return true;
+                if (comp.mouseClicked(mx, my, btn)) return true;
                 yOffset += comp.getHeight();
             }
         }
         return false;
     }
 
-    public boolean mouseReleased(double mouseX, double mouseY, int button, float x, float y) {
+    public void mouseReleased(double mx, double my, int btn, float x, float y) {
         if (extended) {
             float yOffset = y + height;
             for (Component comp : components) {
-                if (comp.mouseReleased(mouseX, mouseY, button)) return true;
+                comp.mouseReleased(mx, my, btn);
                 yOffset += comp.getHeight();
             }
         }
-        return false;
     }
 
     public boolean handleKeyPress(int keyCode) {
         if (extended) {
             for (Component comp : components) {
-                if (comp instanceof BindComponent bind) {
-                    if (bind.onKeyPressed(keyCode)) return true;
-                }
+                if (comp instanceof BindComponent bind && bind.onKeyPressed(keyCode))
+                    return true;
             }
         }
         return false;
     }
 
-    private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
-        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+    private boolean isHovered(double mx, double my, float x, float y, float w, float h) {
+        return mx >= x && mx <= x + w && my >= y && my <= y + h;
     }
 }
