@@ -34,7 +34,7 @@ import java.util.List;
 public class Panel {
     private final Category category;
     private float x, y;
-    private float width;
+    private final float width;
     private float height;
     private boolean expanded;
     private boolean dragging;
@@ -42,11 +42,18 @@ public class Panel {
     private final List<ModuleButton> moduleButtons = new ArrayList<>();
     private float animationProgress;
     private float arrowRotation;
-    private final float HEADER_HEIGHT = 32;
-    private final float CORNER_RADIUS = 8;
-    private final float FONT_SIZE_HEADER = 15;
-    private final float ICON_SIZE = 16;
-    private final float MODULE_BUTTON_HEIGHT = 26;
+    private float hoverAlpha = 0f;
+    private Shader currentShader = null;
+
+    private static final float HEADER_HEIGHT = 38;
+    private static final float CORNER_RADIUS = 14;
+    private static final float FONT_SIZE_HEADER = 16;
+    private static final float ICON_SIZE = 18;
+    private static final float MODULE_BUTTON_HEIGHT = 32;
+    private static final int GLASS_BG = 0xC01A1A2E;
+    private static final int GLASS_BORDER = 0x33FFFFFF;
+    private static final int TEXT_PRIMARY = 0xFFFFFFFF;
+    private static final int TEXT_SECONDARY = 0xCCFFFFFF;
 
     public Panel(Category category, float x, float y, float width) {
         this.category = category;
@@ -61,7 +68,7 @@ public class Panel {
         }
     }
 
-    public void render(Canvas canvas, int mouseX, int mouseY) {
+    public void render(Canvas canvas, int mouseX, int mouseY, Shader glassShader) {
         if (dragging) {
             x = mouseX - dragX;
             y = mouseY - dragY;
@@ -76,9 +83,7 @@ public class Panel {
         arrowRotation += (targetRotation - arrowRotation) * 0.2f;
         if (Math.abs(targetRotation - arrowRotation) < 0.5f) arrowRotation = targetRotation;
 
-        for (ModuleButton btn : moduleButtons) {
-            btn.update();
-        }
+        for (ModuleButton btn : moduleButtons) btn.update();
 
         float modulesHeight = 0;
         if (animationProgress > 0.01f) {
@@ -87,28 +92,56 @@ public class Panel {
         float currentContentHeight = modulesHeight * animationProgress;
         float totalHeight = HEADER_HEIGHT + currentContentHeight;
 
-        try (Paint paint = new Paint()) {
-            paint.setColor(0xCC1A1A1A);
-            canvas.drawRRect(RRect.makeXYWH(x, y, width, totalHeight, CORNER_RADIUS), paint);
+        try (Paint shadow = new Paint()) {
+            shadow.setColor(0x40000000);
+            shadow.setMaskFilter(MaskFilter.makeBlur(FilterBlurMode.NORMAL, 12));
+            canvas.drawRRect(RRect.makeXYWH(x + 2, y + 4, width, totalHeight, CORNER_RADIUS), shadow);
         }
-        try (Paint textPaint = new Paint()) {
-            textPaint.setColor(0xFFFFFFFF);
-            float centerY = y + HEADER_HEIGHT / 2;
-            SkiaRenderer.drawCenteredIcon(canvas, category.getIcon(), x + 18, centerY, ICON_SIZE, 0xFFFFFFFF);
+
+        if (glassShader != null) {
+            try (Paint glassPaint = new Paint().setShader(glassShader)) {
+                canvas.drawRRect(RRect.makeXYWH(x, y, width, height, CORNER_RADIUS), glassPaint);
+            }
+        } else {
+            try (Paint fallback = new Paint().setColor(GLASS_BG)) {
+                canvas.drawRRect(RRect.makeXYWH(x, y, width, height, CORNER_RADIUS), fallback);
+            }
+        }
+
+        try (Paint border = new Paint()) {
+            border.setMode(PaintMode.STROKE);
+            border.setStrokeWidth(1.5f);
+            border.setColor(GLASS_BORDER);
+            canvas.drawRRect(RRect.makeXYWH(x, y, width, totalHeight, CORNER_RADIUS), border);
+        }
+
+        boolean headerHover = isHovered(mouseX, mouseY, x, y, width, HEADER_HEIGHT);
+        float targetHover = headerHover ? 0.08f : 0f;
+        hoverAlpha += (targetHover - hoverAlpha) * 0.3f;
+        if (hoverAlpha > 0.01f) {
+            try (Paint hover = new Paint()) {
+                hover.setColor(0x1AFFFFFF);
+                canvas.drawRRect(RRect.makeXYWH(x, y, width, HEADER_HEIGHT, CORNER_RADIUS), hover);
+            }
+        }
+
+        SkiaRenderer.drawCenteredIcon(canvas, category.getIcon(), x + 20, y + HEADER_HEIGHT / 2, ICON_SIZE, TEXT_PRIMARY);
+        try (Paint textPaint = new Paint().setColor(TEXT_PRIMARY)) {
             Font font = FontManager.INSTANCE.getTextFont(FONT_SIZE_HEADER);
             FontMetrics metrics = font.getMetrics();
-            float textY = centerY - (metrics.getAscent() + metrics.getDescent()) / 2;
-            canvas.drawString(category.getName(), x + 34, textY, font, textPaint);
-            canvas.save();
-            float arrowX = x + width - 15;
-            canvas.translate(arrowX, centerY);
-            canvas.rotate(arrowRotation);
-            SkiaRenderer.drawCenteredIcon(canvas, Icon.EXPAND_LESS, 0, 0, ICON_SIZE - 2, 0xFFFFFFFF);
-            canvas.restore();
+            float textY = y + HEADER_HEIGHT / 2 - (metrics.getAscent() + metrics.getDescent()) / 2;
+            canvas.drawString(category.getName(), x + 36, textY, font, textPaint);
         }
+
+        canvas.save();
+        canvas.translate(x + width - 18, y + HEADER_HEIGHT / 2);
+        canvas.rotate(arrowRotation);
+        SkiaRenderer.drawCenteredIcon(canvas, Icon.EXPAND_LESS, 0, 0, ICON_SIZE - 2, TEXT_SECONDARY);
+        canvas.restore();
+
         if (animationProgress > 0.01f) {
             canvas.save();
-            canvas.clipRRect(RRect.makeXYWH(x, y, width, totalHeight, CORNER_RADIUS), true);
+            canvas.clipRRect(RRect.makeXYWH(x, y, width, totalHeight, CORNER_RADIUS));
             canvas.clipRect(Rect.makeXYWH(x, y + HEADER_HEIGHT, width, currentContentHeight));
             float yOffset = y + HEADER_HEIGHT;
             for (ModuleButton btn : moduleButtons) {
@@ -117,6 +150,7 @@ public class Panel {
             }
             canvas.restore();
         }
+
         this.height = totalHeight;
     }
 
@@ -124,8 +158,8 @@ public class Panel {
         if (isHovered(mouseX, mouseY, x, y, width, HEADER_HEIGHT)) {
             if (button == 0) {
                 dragging = true;
-                dragX = (float)mouseX - x;
-                dragY = (float)mouseY - y;
+                dragX = (float) mouseX - x;
+                dragY = (float) mouseY - y;
                 return true;
             } else if (button == 1) {
                 expanded = !expanded;
@@ -147,7 +181,7 @@ public class Panel {
         if (expanded) {
             float yOffset = y + HEADER_HEIGHT;
             for (ModuleButton btn : moduleButtons) {
-                if (btn.mouseReleased(mouseX, mouseY, button, x, yOffset)) return;
+                btn.mouseReleased(mouseX, mouseY, button, x, yOffset);
                 yOffset += btn.getTotalHeight();
             }
         }
@@ -166,18 +200,20 @@ public class Panel {
         dragging = false;
     }
 
-    private boolean isHovered(double mouseX, double mouseY, float x, float y, float width, float height) {
-        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+    private boolean isHovered(double mx, double my, float x, float y, float w, float h) {
+        return mx >= x && mx <= x + w && my >= y && my <= y + h;
     }
 
     private void clampToScreen() {
         Minecraft mc = Minecraft.getInstance();
-        assert mc.screen != null;
-        int screenWidth = mc.screen.width;
-        int screenHeight = mc.screen.height;
-        if (x < 0) x = 0;
-        if (y < 0) y = 0;
-        if (x + width > screenWidth) x = screenWidth - width;
-        if (y + height > screenHeight) y = screenHeight - height;
+        if (mc.screen == null) return;
+        int sw = mc.screen.width, sh = mc.screen.height;
+        x = Math.clamp(x, 0, sw - width);
+        y = Math.clamp(y, 0, sh - height);
     }
+
+    public float getX() { return x; }
+    public float getY() { return y; }
+    public float getWidth() { return width; }
+    public float getHeight() { return height; }
 }
