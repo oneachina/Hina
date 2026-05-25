@@ -100,7 +100,7 @@ public class SkiaContext {
 
     private void drawDrawables() {
         if (canvas != null && context != null && renderTarget != null) {
-            EventBus.INSTANCE.post(new EventSkiaDrawScene(context, renderTarget, canvas));
+            EventBus.INSTANCE.post(new EventSkiaDrawScene(context, renderTarget, canvas, surface));
         }
     }
 

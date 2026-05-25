@@ -22,6 +22,7 @@ import com.hinaclient.hina.event.Event;
 import com.hinaclient.hina.skia.WrappedBackendRenderTarget;
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.DirectContext;
+import io.github.humbleui.skija.Surface;
 
 /**
  * @Author: oneachina
@@ -31,11 +32,13 @@ public class EventSkiaDrawScene extends Event {
     private final DirectContext context;
     private final WrappedBackendRenderTarget renderTarget;
     private final Canvas canvas;
+    private final Surface surface;
 
-    public EventSkiaDrawScene(DirectContext context, WrappedBackendRenderTarget renderTarget, Canvas canvas) {
+    public EventSkiaDrawScene(DirectContext context, WrappedBackendRenderTarget renderTarget, Canvas canvas, Surface surface) {
         this.context = context;
         this.renderTarget = renderTarget;
         this.canvas = canvas;
+        this.surface = surface;
     }
 
     public DirectContext getContext() {
@@ -48,5 +51,9 @@ public class EventSkiaDrawScene extends Event {
 
     public Canvas getCanvas() {
         return canvas;
+    }
+
+    public Surface getSurface() {
+        return surface;
     }
 }
