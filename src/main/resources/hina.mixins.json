@@ -10,6 +10,7 @@
     "HinaMinecraftMixin",
     "HinaRenderMixin",
     "HinaWindowMixin",
+    "LivingEntityMixin",
     "MixinEntity",
     "accessors.ConnectionAccessor",
     "accessors.ServerboundMovePlayerPacketAccessor"
