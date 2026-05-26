@@ -55,7 +55,7 @@ public class BindComponent extends Component {
 
         String key = module.getKey() == -1 ? "未绑定" : GLFW.glfwGetKeyName(module.getKey(), 0);
         if (key == null) key = "键位 " + module.getKey();
-        String text = listening ? "🎧 按下任意键..." : "🔘 按键: " + key.toUpperCase();
+        String text = listening ? "按下任意键..." : "按键: " + key.toUpperCase();
 
         try (Paint textPaint = new Paint().setColor(listening ? 0xFF88FF88 : 0xFFEEEEEE)) {
             Font font = FontManager.INSTANCE.getTextFont(13);
